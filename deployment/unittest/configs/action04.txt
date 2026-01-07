@@ -1,0 +1,1110 @@
+action04 aafs.ActionConfig test1
+ActionConfig:
+ActionConfigFile:
+forecast_min_gap = PT5M
+forecast_max_delay = PT168H
+comcat_clock_skew = PT8M
+comcat_origin_skew = PT2M
+comcat_retry_min_gap = PT30S
+comcat_retry_missing = PT1H
+seq_spec_min_lag = PT3H
+advisory_dur_week = PT1S
+advisory_dur_month = PT624H
+advisory_dur_year = PT8232H
+def_max_forecast_lag = PT8760H
+withdraw_forecast_lag = PT72H
+stale_forecast_option = 3
+shadow_search_radius = 2000.0
+shadow_lookback_time = PT8760H
+shadow_centroid_mag = 2.95
+shadow_large_mag = 7.6
+poll_short_period = PT20M
+poll_short_lookback = PT72H
+poll_short_intake_gap = PT30S
+poll_long_period = PT24H
+poll_long_lookback = PT8400H
+poll_long_intake_gap = PT2M
+pdl_intake_max_age = PT7200H
+pdl_intake_max_future = PT24H
+removal_forecast_age = PT8400H
+removal_update_skew = PT2H
+removal_lookback_tmax = PT105120H
+removal_lookback_tmin = PT30M
+removal_lookback_mag = 3.45
+removal_check_period = PT24H
+removal_retry_period = PT30M
+removal_event_gap = PT2M
+removal_foreign_block = PT720H
+def_injectable_text = 
+evseq_enable = 1
+evseq_report = 1
+evseq_lookback = PT720H
+evseq_lookahead = PT8760H
+evseq_cap_min_dur = PT72H
+evseq_cap_gap = PT1H
+etas_enable = 0
+etas_time_limit = PT4M
+etas_progress_time = PT10S
+data_fetch_lookback = PT1440H
+data_fit_dur_min = PT10M
+comcat_cache_1_mag = 1.95
+comcat_cache_1_time = PT2184H
+comcat_cache_2_mag = 3.95
+comcat_cache_2_time = PT9504H
+forecast_rate_limit = PT20S
+forecast_max_limit = PT1M
+forecast_file_option = 0
+adv_min_mag_bins = [
+  0:  3.0
+  1:  4.0
+  2:  5.0
+  3:  6.0
+  4:  7.0
+]
+adv_window_start_offs = [
+  0:  PT0S
+  1:  PT0S
+  2:  PT0S
+  3:  PT0S
+]
+adv_window_end_offs = [
+  0:  PT24H
+  1:  PT168H
+  2:  PT720H
+  3:  PT8760H
+]
+adv_window_names = [
+  0:  1 Day
+  1:  1 Week
+  2:  1 Month
+  3:  1 Year
+]
+adv_fractile_values = [
+  0:  0.01
+  1:  0.015
+  2:  0.02
+  3:  0.025
+  4:  0.03
+  5:  0.035
+  6:  0.04
+  7:  0.045
+  8:  0.05
+  9:  0.055
+  10:  0.06
+  11:  0.065
+  12:  0.07
+  13:  0.075
+  14:  0.08
+  15:  0.085
+  16:  0.09
+  17:  0.095
+  18:  0.1
+  19:  0.105
+  20:  0.11
+  21:  0.115
+  22:  0.12
+  23:  0.125
+  24:  0.13
+  25:  0.135
+  26:  0.14
+  27:  0.145
+  28:  0.15
+  29:  0.155
+  30:  0.16
+  31:  0.165
+  32:  0.17
+  33:  0.175
+  34:  0.18
+  35:  0.185
+  36:  0.19
+  37:  0.195
+  38:  0.2
+  39:  0.205
+  40:  0.21
+  41:  0.215
+  42:  0.22
+  43:  0.225
+  44:  0.23
+  45:  0.235
+  46:  0.24
+  47:  0.245
+  48:  0.25
+  49:  0.255
+  50:  0.26
+  51:  0.265
+  52:  0.27
+  53:  0.275
+  54:  0.28
+  55:  0.285
+  56:  0.29
+  57:  0.295
+  58:  0.3
+  59:  0.305
+  60:  0.31
+  61:  0.315
+  62:  0.32
+  63:  0.325
+  64:  0.33
+  65:  0.335
+  66:  0.34
+  67:  0.345
+  68:  0.35
+  69:  0.355
+  70:  0.36
+  71:  0.365
+  72:  0.37
+  73:  0.375
+  74:  0.38
+  75:  0.385
+  76:  0.39
+  77:  0.395
+  78:  0.4
+  79:  0.405
+  80:  0.41
+  81:  0.415
+  82:  0.42
+  83:  0.425
+  84:  0.43
+  85:  0.435
+  86:  0.44
+  87:  0.445
+  88:  0.45
+  89:  0.455
+  90:  0.46
+  91:  0.465
+  92:  0.47
+  93:  0.475
+  94:  0.48
+  95:  0.485
+  96:  0.49
+  97:  0.495
+  98:  0.5
+  99:  0.505
+  100:  0.51
+  101:  0.515
+  102:  0.52
+  103:  0.525
+  104:  0.53
+  105:  0.535
+  106:  0.54
+  107:  0.545
+  108:  0.55
+  109:  0.555
+  110:  0.56
+  111:  0.565
+  112:  0.57
+  113:  0.575
+  114:  0.58
+  115:  0.585
+  116:  0.59
+  117:  0.595
+  118:  0.6
+  119:  0.605
+  120:  0.61
+  121:  0.615
+  122:  0.62
+  123:  0.625
+  124:  0.63
+  125:  0.635
+  126:  0.64
+  127:  0.645
+  128:  0.65
+  129:  0.655
+  130:  0.66
+  131:  0.665
+  132:  0.67
+  133:  0.675
+  134:  0.68
+  135:  0.685
+  136:  0.69
+  137:  0.695
+  138:  0.7
+  139:  0.705
+  140:  0.71
+  141:  0.715
+  142:  0.72
+  143:  0.725
+  144:  0.73
+  145:  0.735
+  146:  0.74
+  147:  0.745
+  148:  0.75
+  149:  0.755
+  150:  0.76
+  151:  0.765
+  152:  0.77
+  153:  0.775
+  154:  0.78
+  155:  0.785
+  156:  0.79
+  157:  0.795
+  158:  0.8
+  159:  0.805
+  160:  0.81
+  161:  0.815
+  162:  0.82
+  163:  0.825
+  164:  0.83
+  165:  0.835
+  166:  0.84
+  167:  0.845
+  168:  0.85
+  169:  0.855
+  170:  0.86
+  171:  0.865
+  172:  0.87
+  173:  0.875
+  174:  0.88
+  175:  0.885
+  176:  0.89
+  177:  0.895
+  178:  0.9
+  179:  0.905
+  180:  0.91
+  181:  0.915
+  182:  0.92
+  183:  0.925
+  184:  0.93
+  185:  0.935
+  186:  0.94
+  187:  0.945
+  188:  0.95
+  189:  0.955
+  190:  0.96
+  191:  0.965
+  192:  0.97
+  193:  0.975
+  194:  0.98
+  195:  0.985
+  196:  0.99
+]
+adv_bar_counts = [
+  0:  0
+  1:  1
+  2:  2
+  3:  5
+  4:  10
+  5:  20
+  6:  50
+  7:  100
+  8:  200
+  9:  500
+]
+forecast_lags = [
+  0:  PT10M
+  1:  PT30M
+  2:  PT50M
+  3:  PT2H
+  4:  PT4H
+  5:  PT6H
+  6:  PT12H
+  7:  PT18H
+  8:  PT24H
+  9:  PT48H
+  10:  PT72H
+  11:  PT96H
+  12:  PT120H
+  13:  PT144H
+  14:  PT168H
+  15:  PT192H
+  16:  PT216H
+  17:  PT240H
+  18:  PT264H
+  19:  PT288H
+  20:  PT312H
+  21:  PT336H
+  22:  PT384H
+  23:  PT456H
+  24:  PT528H
+  25:  PT600H
+  26:  PT672H
+  27:  PT840H
+  28:  PT1008H
+  29:  PT1176H
+  30:  PT1344H
+  31:  PT1512H
+  32:  PT1680H
+  33:  PT1848H
+  34:  PT2016H
+  35:  PT2184H
+  36:  PT2352H
+  37:  PT2520H
+  38:  PT2688H
+  39:  PT2856H
+  40:  PT3024H
+  41:  PT3192H
+  42:  PT3360H
+  43:  PT3528H
+  44:  PT3696H
+  45:  PT3864H
+  46:  PT4032H
+  47:  PT4200H
+  48:  PT4368H
+  49:  PT4536H
+  50:  PT4704H
+  51:  PT4872H
+  52:  PT5040H
+  53:  PT5208H
+  54:  PT5376H
+  55:  PT5544H
+  56:  PT5712H
+  57:  PT5880H
+  58:  PT6048H
+  59:  PT6216H
+  60:  PT6384H
+  61:  PT6552H
+  62:  PT6720H
+  63:  PT6888H
+  64:  PT7056H
+  65:  PT7224H
+  66:  PT7392H
+  67:  PT7560H
+  68:  PT7728H
+  69:  PT7896H
+  70:  PT8064H
+  71:  PT8232H
+  72:  PT8400H
+  73:  PT8568H
+  74:  PT8760H
+  75:  PT9432H
+  76:  PT10104H
+  77:  PT10776H
+  78:  PT11448H
+  79:  PT12120H
+  80:  PT12792H
+  81:  PT13464H
+  82:  PT14136H
+  83:  PT14808H
+  84:  PT15480H
+  85:  PT16152H
+  86:  PT16824H
+  87:  PT17520H
+  88:  PT18984H
+  89:  PT20448H
+  90:  PT21912H
+  91:  PT23352H
+  92:  PT24816H
+  93:  PT26280H
+  94:  PT27744H
+  95:  PT29208H
+  96:  PT30672H
+  97:  PT32112H
+  98:  PT33576H
+  99:  PT35040H
+  100:  PT36504H
+  101:  PT37968H
+  102:  PT39432H
+  103:  PT40872H
+  104:  PT42336H
+  105:  PT43800H
+  106:  PT45264H
+  107:  PT46728H
+  108:  PT48192H
+  109:  PT49632H
+  110:  PT51096H
+  111:  PT52560H
+  112:  PT54024H
+  113:  PT55488H
+  114:  PT56952H
+  115:  PT58392H
+  116:  PT59856H
+  117:  PT61320H
+  118:  PT62784H
+  119:  PT64248H
+  120:  PT65712H
+  121:  PT67152H
+  122:  PT68616H
+  123:  PT70080H
+  124:  PT71544H
+  125:  PT73008H
+  126:  PT74472H
+  127:  PT75912H
+  128:  PT77376H
+  129:  PT78840H
+  130:  PT80304H
+  131:  PT81768H
+  132:  PT83232H
+  133:  PT84672H
+  134:  PT86136H
+  135:  PT87600H
+]
+comcat_retry_lags = [
+  0:  PT30S
+  1:  PT2M
+  2:  PT5M
+  3:  PT10M
+  4:  PT20M
+  5:  PT30M
+  6:  PT40M
+  7:  PT50M
+  8:  PT1H
+  9:  PT2H
+  10:  PT4H
+  11:  PT8H
+  12:  PT12H
+  13:  PT16H
+  14:  PT20H
+  15:  PT24H
+  16:  PT48H
+  17:  PT72H
+  18:  PT96H
+  19:  PT120H
+  20:  PT144H
+  21:  PT168H
+  22:  PT192H
+  23:  PT216H
+  24:  PT240H
+  25:  PT264H
+  26:  PT288H
+  27:  PT312H
+  28:  PT336H
+  29:  PT360H
+]
+comcat_intake_lags = [
+  0:  PT2M
+  1:  PT5M
+  2:  PT10M
+  3:  PT15M
+  4:  PT20M
+  5:  PT25M
+  6:  PT30M
+  7:  PT40M
+  8:  PT50M
+  9:  PT1H
+  10:  PT2H
+  11:  PT4H
+  12:  PT8H
+  13:  PT12H
+  14:  PT16H
+  15:  PT20H
+  16:  PT24H
+]
+pdl_report_retry_lags = [
+  0:  PT2M
+  1:  PT5M
+  2:  PT10M
+  3:  PT20M
+  4:  PT30M
+  5:  PT40M
+  6:  PT50M
+  7:  PT1H
+  8:  PT2H
+  9:  PT4H
+  10:  PT8H
+  11:  PT12H
+  12:  PT16H
+  13:  PT20H
+  14:  PT24H
+  15:  PT48H
+  16:  PT72H
+  17:  PT96H
+  18:  PT120H
+  19:  PT144H
+  20:  PT168H
+  21:  PT192H
+  22:  PT216H
+  23:  PT240H
+  24:  PT264H
+  25:  PT288H
+  26:  PT312H
+  27:  PT336H
+  28:  PT360H
+]
+pdl_intake_regions = [
+IntakeSphRegion
+	Name: CAL-NCSS
+	MinLat: 34.5
+	MinLon: -125.3
+	MaxLat: 42.1
+	MaxLon: -118.0167
+	MinMag: 3.95
+	IntakeMag: 3.75
+IntakeSphRegion
+	Name: CAL-SCSN
+	MinLat: 32.0
+	MinLon: -121.25
+	MaxLat: 37.2167
+	MaxLon: -114.3333
+	MinMag: 3.95
+	IntakeMag: 3.75
+IntakeSphRegion
+	Name: ALASKA
+	MinLat: 49.55
+	MinLon: 166.99
+	MaxLat: 71.77
+	MaxLon: 230.84
+	MinMag: 4.95
+	IntakeMag: 4.75
+IntakeSphRegion
+	Name: HAWAII
+	MinLat: 15.45
+	MinLon: -179.9999
+	MaxLat: 31.88
+	MaxLon: -151.52
+	MinMag: 4.95
+	IntakeMag: 4.75
+IntakeSphRegion
+	Name: PUERTO-RICO
+	MinLat: 16.97
+	MinLon: -68.12
+	MaxLat: 19.68
+	MaxLon: -64.29
+	MinMag: 4.95
+	IntakeMag: 4.75
+IntakeSphRegion
+	Name: GUAM-MARIANAS
+	MinLat: 10.142
+	MinLon: 140.977
+	MaxLat: 22.431
+	MaxLon: 149.414
+	MinMag: 4.95
+	IntakeMag: 4.75
+IntakeSphRegion
+	Name: AMERICAN-SAMOA
+	MinLat: -17.099
+	MinLon: -171.255
+	MaxLat: -10.941
+	MaxLon: -167.651
+	MinMag: 4.95
+	IntakeMag: 4.75
+IntakeSphRegion
+	Name: USA
+	MinLat: 24.0959
+	MinLon: -130.4154
+	MaxLat: 49.217
+	MaxLon: -66.2
+	MinMag: 3.95
+	IntakeMag: 3.75
+IntakeSphRegion
+	Name: WORLD
+	MinLat: -90.0
+	MinLon: -180.0
+	MaxLat: 90.0
+	MaxLon: 180.0
+	MinMag: 5.95
+	IntakeMag: 5.75
+]
+
+
+skip_stale_forecasts = false
+omit_stale_forecasts = true
+is_evseq_enabled = true
+is_evseq_reported = true
+is_etas_enabled = false
+is_forecast_file_enabled = false
+is_forecast_file_verbose = false
+pdl_intake_region_min_min_mag = 3.95
+pdl_intake_region_min_intake_mag = 3.75
+max_adv_window_end_off = 31536000000
+
+advisory bin 0: mag = 3.0
+advisory bin 1: mag = 4.0
+advisory bin 2: mag = 5.0
+advisory bin 3: mag = 6.0
+advisory bin 4: mag = 7.0
+
+advisory window 0: start = PT0S, end = PT24H, name = 1 Day
+advisory window 1: start = PT0S, end = PT168H, name = 1 Week
+advisory window 2: start = PT0S, end = PT720H, name = 1 Month
+advisory window 3: start = PT0S, end = PT8760H, name = 1 Year
+
+fractile 0: probability = 0.01, rounded = 0.01
+fractile 1: probability = 0.015, rounded = 0.015
+fractile 2: probability = 0.02, rounded = 0.02
+fractile 3: probability = 0.025, rounded = 0.025
+fractile 4: probability = 0.03, rounded = 0.03
+fractile 5: probability = 0.035, rounded = 0.035
+fractile 6: probability = 0.04, rounded = 0.04
+fractile 7: probability = 0.045, rounded = 0.045
+fractile 8: probability = 0.05, rounded = 0.05
+fractile 9: probability = 0.055, rounded = 0.055
+fractile 10: probability = 0.06, rounded = 0.06
+fractile 11: probability = 0.065, rounded = 0.065
+fractile 12: probability = 0.07, rounded = 0.07
+fractile 13: probability = 0.075, rounded = 0.075
+fractile 14: probability = 0.08, rounded = 0.08
+fractile 15: probability = 0.085, rounded = 0.085
+fractile 16: probability = 0.09, rounded = 0.09
+fractile 17: probability = 0.095, rounded = 0.095
+fractile 18: probability = 0.1, rounded = 0.1
+fractile 19: probability = 0.105, rounded = 0.105
+fractile 20: probability = 0.11, rounded = 0.11
+fractile 21: probability = 0.115, rounded = 0.115
+fractile 22: probability = 0.12, rounded = 0.12
+fractile 23: probability = 0.125, rounded = 0.125
+fractile 24: probability = 0.13, rounded = 0.13
+fractile 25: probability = 0.135, rounded = 0.135
+fractile 26: probability = 0.14, rounded = 0.14
+fractile 27: probability = 0.145, rounded = 0.145
+fractile 28: probability = 0.15, rounded = 0.15
+fractile 29: probability = 0.155, rounded = 0.155
+fractile 30: probability = 0.16, rounded = 0.16
+fractile 31: probability = 0.165, rounded = 0.165
+fractile 32: probability = 0.17, rounded = 0.17
+fractile 33: probability = 0.175, rounded = 0.175
+fractile 34: probability = 0.18, rounded = 0.18
+fractile 35: probability = 0.185, rounded = 0.185
+fractile 36: probability = 0.19, rounded = 0.19
+fractile 37: probability = 0.195, rounded = 0.195
+fractile 38: probability = 0.2, rounded = 0.2
+fractile 39: probability = 0.205, rounded = 0.205
+fractile 40: probability = 0.21, rounded = 0.21
+fractile 41: probability = 0.215, rounded = 0.215
+fractile 42: probability = 0.22, rounded = 0.22
+fractile 43: probability = 0.225, rounded = 0.225
+fractile 44: probability = 0.23, rounded = 0.23
+fractile 45: probability = 0.235, rounded = 0.235
+fractile 46: probability = 0.24, rounded = 0.24
+fractile 47: probability = 0.245, rounded = 0.245
+fractile 48: probability = 0.25, rounded = 0.25
+fractile 49: probability = 0.255, rounded = 0.255
+fractile 50: probability = 0.26, rounded = 0.26
+fractile 51: probability = 0.265, rounded = 0.265
+fractile 52: probability = 0.27, rounded = 0.27
+fractile 53: probability = 0.275, rounded = 0.275
+fractile 54: probability = 0.28, rounded = 0.28
+fractile 55: probability = 0.285, rounded = 0.285
+fractile 56: probability = 0.29, rounded = 0.29
+fractile 57: probability = 0.295, rounded = 0.295
+fractile 58: probability = 0.3, rounded = 0.3
+fractile 59: probability = 0.305, rounded = 0.305
+fractile 60: probability = 0.31, rounded = 0.31
+fractile 61: probability = 0.315, rounded = 0.315
+fractile 62: probability = 0.32, rounded = 0.32
+fractile 63: probability = 0.325, rounded = 0.325
+fractile 64: probability = 0.33, rounded = 0.33
+fractile 65: probability = 0.335, rounded = 0.335
+fractile 66: probability = 0.34, rounded = 0.34
+fractile 67: probability = 0.345, rounded = 0.345
+fractile 68: probability = 0.35, rounded = 0.35
+fractile 69: probability = 0.355, rounded = 0.355
+fractile 70: probability = 0.36, rounded = 0.36
+fractile 71: probability = 0.365, rounded = 0.365
+fractile 72: probability = 0.37, rounded = 0.37
+fractile 73: probability = 0.375, rounded = 0.375
+fractile 74: probability = 0.38, rounded = 0.38
+fractile 75: probability = 0.385, rounded = 0.385
+fractile 76: probability = 0.39, rounded = 0.39
+fractile 77: probability = 0.395, rounded = 0.395
+fractile 78: probability = 0.4, rounded = 0.4
+fractile 79: probability = 0.405, rounded = 0.405
+fractile 80: probability = 0.41, rounded = 0.41
+fractile 81: probability = 0.415, rounded = 0.415
+fractile 82: probability = 0.42, rounded = 0.42
+fractile 83: probability = 0.425, rounded = 0.425
+fractile 84: probability = 0.43, rounded = 0.43
+fractile 85: probability = 0.435, rounded = 0.435
+fractile 86: probability = 0.44, rounded = 0.44
+fractile 87: probability = 0.445, rounded = 0.445
+fractile 88: probability = 0.45, rounded = 0.45
+fractile 89: probability = 0.455, rounded = 0.455
+fractile 90: probability = 0.46, rounded = 0.46
+fractile 91: probability = 0.465, rounded = 0.465
+fractile 92: probability = 0.47, rounded = 0.47
+fractile 93: probability = 0.475, rounded = 0.475
+fractile 94: probability = 0.48, rounded = 0.48
+fractile 95: probability = 0.485, rounded = 0.485
+fractile 96: probability = 0.49, rounded = 0.49
+fractile 97: probability = 0.495, rounded = 0.495
+fractile 98: probability = 0.5, rounded = 0.5
+fractile 99: probability = 0.505, rounded = 0.505
+fractile 100: probability = 0.51, rounded = 0.51
+fractile 101: probability = 0.515, rounded = 0.515
+fractile 102: probability = 0.52, rounded = 0.52
+fractile 103: probability = 0.525, rounded = 0.525
+fractile 104: probability = 0.53, rounded = 0.53
+fractile 105: probability = 0.535, rounded = 0.535
+fractile 106: probability = 0.54, rounded = 0.54
+fractile 107: probability = 0.545, rounded = 0.545
+fractile 108: probability = 0.55, rounded = 0.55
+fractile 109: probability = 0.555, rounded = 0.555
+fractile 110: probability = 0.56, rounded = 0.56
+fractile 111: probability = 0.565, rounded = 0.565
+fractile 112: probability = 0.57, rounded = 0.57
+fractile 113: probability = 0.575, rounded = 0.575
+fractile 114: probability = 0.58, rounded = 0.58
+fractile 115: probability = 0.585, rounded = 0.585
+fractile 116: probability = 0.59, rounded = 0.59
+fractile 117: probability = 0.595, rounded = 0.595
+fractile 118: probability = 0.6, rounded = 0.6
+fractile 119: probability = 0.605, rounded = 0.605
+fractile 120: probability = 0.61, rounded = 0.61
+fractile 121: probability = 0.615, rounded = 0.615
+fractile 122: probability = 0.62, rounded = 0.62
+fractile 123: probability = 0.625, rounded = 0.625
+fractile 124: probability = 0.63, rounded = 0.63
+fractile 125: probability = 0.635, rounded = 0.635
+fractile 126: probability = 0.64, rounded = 0.64
+fractile 127: probability = 0.645, rounded = 0.645
+fractile 128: probability = 0.65, rounded = 0.65
+fractile 129: probability = 0.655, rounded = 0.655
+fractile 130: probability = 0.66, rounded = 0.66
+fractile 131: probability = 0.665, rounded = 0.665
+fractile 132: probability = 0.67, rounded = 0.67
+fractile 133: probability = 0.675, rounded = 0.675
+fractile 134: probability = 0.68, rounded = 0.68
+fractile 135: probability = 0.685, rounded = 0.685
+fractile 136: probability = 0.69, rounded = 0.69
+fractile 137: probability = 0.695, rounded = 0.695
+fractile 138: probability = 0.7, rounded = 0.7
+fractile 139: probability = 0.705, rounded = 0.705
+fractile 140: probability = 0.71, rounded = 0.71
+fractile 141: probability = 0.715, rounded = 0.715
+fractile 142: probability = 0.72, rounded = 0.72
+fractile 143: probability = 0.725, rounded = 0.725
+fractile 144: probability = 0.73, rounded = 0.73
+fractile 145: probability = 0.735, rounded = 0.735
+fractile 146: probability = 0.74, rounded = 0.74
+fractile 147: probability = 0.745, rounded = 0.745
+fractile 148: probability = 0.75, rounded = 0.75
+fractile 149: probability = 0.755, rounded = 0.755
+fractile 150: probability = 0.76, rounded = 0.76
+fractile 151: probability = 0.765, rounded = 0.765
+fractile 152: probability = 0.77, rounded = 0.77
+fractile 153: probability = 0.775, rounded = 0.775
+fractile 154: probability = 0.78, rounded = 0.78
+fractile 155: probability = 0.785, rounded = 0.785
+fractile 156: probability = 0.79, rounded = 0.79
+fractile 157: probability = 0.795, rounded = 0.795
+fractile 158: probability = 0.8, rounded = 0.8
+fractile 159: probability = 0.805, rounded = 0.805
+fractile 160: probability = 0.81, rounded = 0.81
+fractile 161: probability = 0.815, rounded = 0.815
+fractile 162: probability = 0.82, rounded = 0.82
+fractile 163: probability = 0.825, rounded = 0.825
+fractile 164: probability = 0.83, rounded = 0.83
+fractile 165: probability = 0.835, rounded = 0.835
+fractile 166: probability = 0.84, rounded = 0.84
+fractile 167: probability = 0.845, rounded = 0.845
+fractile 168: probability = 0.85, rounded = 0.85
+fractile 169: probability = 0.855, rounded = 0.855
+fractile 170: probability = 0.86, rounded = 0.86
+fractile 171: probability = 0.865, rounded = 0.865
+fractile 172: probability = 0.87, rounded = 0.87
+fractile 173: probability = 0.875, rounded = 0.875
+fractile 174: probability = 0.88, rounded = 0.88
+fractile 175: probability = 0.885, rounded = 0.885
+fractile 176: probability = 0.89, rounded = 0.89
+fractile 177: probability = 0.895, rounded = 0.895
+fractile 178: probability = 0.9, rounded = 0.9
+fractile 179: probability = 0.905, rounded = 0.905
+fractile 180: probability = 0.91, rounded = 0.91
+fractile 181: probability = 0.915, rounded = 0.915
+fractile 182: probability = 0.92, rounded = 0.92
+fractile 183: probability = 0.925, rounded = 0.925
+fractile 184: probability = 0.93, rounded = 0.93
+fractile 185: probability = 0.935, rounded = 0.935
+fractile 186: probability = 0.94, rounded = 0.94
+fractile 187: probability = 0.945, rounded = 0.945
+fractile 188: probability = 0.95, rounded = 0.95
+fractile 189: probability = 0.955, rounded = 0.955
+fractile 190: probability = 0.96, rounded = 0.96
+fractile 191: probability = 0.965, rounded = 0.965
+fractile 192: probability = 0.97, rounded = 0.97
+fractile 193: probability = 0.975, rounded = 0.975
+fractile 194: probability = 0.98, rounded = 0.98
+fractile 195: probability = 0.985, rounded = 0.985
+fractile 196: probability = 0.99, rounded = 0.99
+
+bar 0: count = 0
+bar 1: count = 1
+bar 2: count = 2
+bar 3: count = 5
+bar 4: count = 10
+bar 5: count = 20
+bar 6: count = 50
+bar 7: count = 100
+bar 8: count = 200
+bar 9: count = 500
+
+PT10M  600000
+PT30M  1800000
+PT50M  3000000
+PT2H  7200000
+PT4H  14400000
+PT6H  21600000
+PT12H  43200000
+PT18H  64800000
+PT24H  86400000
+PT48H  172800000
+PT72H  259200000
+PT96H  345600000
+PT120H  432000000
+PT144H  518400000
+PT168H  604800000
+PT192H  691200000
+PT216H  777600000
+PT240H  864000000
+PT264H  950400000
+PT288H  1036800000
+PT312H  1123200000
+PT336H  1209600000
+PT384H  1382400000
+PT456H  1641600000
+PT528H  1900800000
+PT600H  2160000000
+PT672H  2419200000
+PT840H  3024000000
+PT1008H  3628800000
+PT1176H  4233600000
+PT1344H  4838400000
+PT1512H  5443200000
+PT1680H  6048000000
+PT1848H  6652800000
+PT2016H  7257600000
+PT2184H  7862400000
+PT2352H  8467200000
+PT2520H  9072000000
+PT2688H  9676800000
+PT2856H  10281600000
+PT3024H  10886400000
+PT3192H  11491200000
+PT3360H  12096000000
+PT3528H  12700800000
+PT3696H  13305600000
+PT3864H  13910400000
+PT4032H  14515200000
+PT4200H  15120000000
+PT4368H  15724800000
+PT4536H  16329600000
+PT4704H  16934400000
+PT4872H  17539200000
+PT5040H  18144000000
+PT5208H  18748800000
+PT5376H  19353600000
+PT5544H  19958400000
+PT5712H  20563200000
+PT5880H  21168000000
+PT6048H  21772800000
+PT6216H  22377600000
+PT6384H  22982400000
+PT6552H  23587200000
+PT6720H  24192000000
+PT6888H  24796800000
+PT7056H  25401600000
+PT7224H  26006400000
+PT7392H  26611200000
+PT7560H  27216000000
+PT7728H  27820800000
+PT7896H  28425600000
+PT8064H  29030400000
+PT8232H  29635200000
+PT8400H  30240000000
+PT8568H  30844800000
+PT8760H  31536000000
+PT9432H  33955200000
+PT10104H  36374400000
+PT10776H  38793600000
+PT11448H  41212800000
+PT12120H  43632000000
+PT12792H  46051200000
+PT13464H  48470400000
+PT14136H  50889600000
+PT14808H  53308800000
+PT15480H  55728000000
+PT16152H  58147200000
+PT16824H  60566400000
+PT17520H  63072000000
+PT18984H  68342400000
+PT20448H  73612800000
+PT21912H  78883200000
+PT23352H  84067200000
+PT24816H  89337600000
+PT26280H  94608000000
+PT27744H  99878400000
+PT29208H  105148800000
+PT30672H  110419200000
+PT32112H  115603200000
+PT33576H  120873600000
+PT35040H  126144000000
+PT36504H  131414400000
+PT37968H  136684800000
+PT39432H  141955200000
+PT40872H  147139200000
+PT42336H  152409600000
+PT43800H  157680000000
+PT45264H  162950400000
+PT46728H  168220800000
+PT48192H  173491200000
+PT49632H  178675200000
+PT51096H  183945600000
+PT52560H  189216000000
+PT54024H  194486400000
+PT55488H  199756800000
+PT56952H  205027200000
+PT58392H  210211200000
+PT59856H  215481600000
+PT61320H  220752000000
+PT62784H  226022400000
+PT64248H  231292800000
+PT65712H  236563200000
+PT67152H  241747200000
+PT68616H  247017600000
+PT70080H  252288000000
+PT71544H  257558400000
+PT73008H  262828800000
+PT74472H  268099200000
+PT75912H  273283200000
+PT77376H  278553600000
+PT78840H  283824000000
+PT80304H  289094400000
+PT81768H  294364800000
+PT83232H  299635200000
+PT84672H  304819200000
+PT86136H  310089600000
+PT87600H  315360000000
+
+PT10M  600000
+PT30M  1800000
+PT50M  3000000
+PT2H  7200000
+PT4H  14400000
+PT6H  21600000
+PT12H  43200000
+PT18H  64800000
+PT24H  86400000
+PT48H  172800000
+PT72H  259200000
+PT96H  345600000
+PT120H  432000000
+PT144H  518400000
+PT168H  604800000
+PT192H  691200000
+PT216H  777600000
+PT240H  864000000
+PT264H  950400000
+PT288H  1036800000
+PT312H  1123200000
+PT336H  1209600000
+PT384H  1382400000
+PT456H  1641600000
+PT528H  1900800000
+PT600H  2160000000
+PT672H  2419200000
+PT840H  3024000000
+PT1008H  3628800000
+PT1176H  4233600000
+PT1344H  4838400000
+PT1512H  5443200000
+PT1680H  6048000000
+PT1848H  6652800000
+PT2016H  7257600000
+PT2184H  7862400000
+PT2352H  8467200000
+PT2520H  9072000000
+PT2688H  9676800000
+PT2856H  10281600000
+PT3024H  10886400000
+PT3192H  11491200000
+PT3360H  12096000000
+PT3528H  12700800000
+PT3696H  13305600000
+PT3864H  13910400000
+PT4032H  14515200000
+PT4200H  15120000000
+PT4368H  15724800000
+PT4536H  16329600000
+PT4704H  16934400000
+PT4872H  17539200000
+PT5040H  18144000000
+PT5208H  18748800000
+PT5376H  19353600000
+PT5544H  19958400000
+PT5712H  20563200000
+PT5880H  21168000000
+PT6048H  21772800000
+PT6216H  22377600000
+PT6384H  22982400000
+PT6552H  23587200000
+PT6720H  24192000000
+PT6888H  24796800000
+PT7056H  25401600000
+PT7224H  26006400000
+PT7392H  26611200000
+PT7560H  27216000000
+PT7728H  27820800000
+PT7896H  28425600000
+PT8064H  29030400000
+PT8232H  29635200000
+PT8400H  30240000000
+PT8568H  30844800000
+PT8760H  31536000000
+
+PT30S  30000
+PT2M  120000
+PT5M  300000
+PT10M  600000
+PT20M  1200000
+PT30M  1800000
+PT40M  2400000
+PT50M  3000000
+PT1H  3600000
+PT2H  7200000
+PT4H  14400000
+PT8H  28800000
+PT12H  43200000
+PT16H  57600000
+PT20H  72000000
+PT24H  86400000
+PT48H  172800000
+PT72H  259200000
+PT96H  345600000
+PT120H  432000000
+PT144H  518400000
+PT168H  604800000
+PT192H  691200000
+PT216H  777600000
+PT240H  864000000
+PT264H  950400000
+PT288H  1036800000
+PT312H  1123200000
+PT336H  1209600000
+PT360H  1296000000
+
+PT2M  120000
+PT5M  300000
+PT10M  600000
+PT15M  900000
+PT20M  1200000
+PT25M  1500000
+PT30M  1800000
+PT40M  2400000
+PT50M  3000000
+PT1H  3600000
+PT2H  7200000
+PT4H  14400000
+PT8H  28800000
+PT12H  43200000
+PT16H  57600000
+PT20H  72000000
+PT24H  86400000
+
+PT2M  120000
+PT5M  300000
+PT10M  600000
+PT20M  1200000
+PT30M  1800000
+PT40M  2400000
+PT50M  3000000
+PT1H  3600000
+PT2H  7200000
+PT4H  14400000
+PT8H  28800000
+PT12H  43200000
+PT16H  57600000
+PT20H  72000000
+PT24H  86400000
+PT48H  172800000
+PT72H  259200000
+PT96H  345600000
+PT120H  432000000
+PT144H  518400000
+PT168H  604800000
+PT192H  691200000
+PT216H  777600000
+PT240H  864000000
+PT264H  950400000
+PT288H  1036800000
+PT312H  1123200000
+PT336H  1209600000
+PT360H  1296000000

@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Operational Aftershock Forecasting",
+    "organization": "U.S. Geological Survey",
+    "description": "Server code and desktop applications for operational aftershock forecasting",
+    "version": "1.4.1743",
+    "status": "Production",
+
+    "permissions": {
+      "usageType": "openSource",
+      "licenses": [
+        {
+          "name": "Public Domain, CC0-1.0",
+          "URL": "https://code.usgs.gov/esc/oaf/opensha-oaf/-/raw/1.4.1743/LICENSE.md"
+        }
+      ]
+    },
+
+    "homepageURL": "https://code.usgs.gov/esc/oaf/opensha-oaf",
+    "downloadURL": "https://code.usgs.gov/esc/oaf/opensha-oaf/-/archive/1.4.1743/opensha-oaf-1.4.1743.zip",
+    "disclaimerURL": "https://code.usgs.gov/esc/oaf/opensha-oaf/-/raw/1.4.1743/DISCLAIMER.md",
+    "repositoryURL": "https://code.usgs.gov/esc/oaf/opensha-oaf.git",
+    "vcs": "git",
+
+    "laborHours": 0,
+
+    "tags": [
+      "Aftershock Forecasting",
+      "Statistical Seismology",
+      "Epidemic Type Aftershock Sequence (ETAS)"
+    ],
+
+    "languages": [
+      "Java"
+    ],
+
+    "contact": {
+      "name": "Michael Barall",
+      "email": "mbarall@usgs.gov"
+    },
+
+    "date": {
+      "metadataLastUpdated": "2025-03-24"
+    }
+  }
+]
