@@ -19,9 +19,24 @@ public class ETAS_Demo_NZ {
     public static void main(String[] args) {
         System.out.println("ETAS Demo (NZ): Fetching data from GeoNet and running model...");
 
-        // 1. Define the event (Kaikoura 2016 M7.8)
-        // GeoNet ID to be confirmed: likely 2016p858000
-        String eventID = "2016p858000";
+        // --- CLI Arguments ---
+        // Usage: ETAS_Demo_NZ [eventID] [forecastMinDays] [forecastMaxDays]
+        String eventID = "2016p858000"; // Default: Kaikoura 2016 M7.8
+        double forecastMinDaysArg = 7.0;
+        double forecastMaxDaysArg = 14.0;
+
+        if (args.length >= 1)
+            eventID = args[0];
+        if (args.length >= 2)
+            forecastMinDaysArg = Double.parseDouble(args[1]);
+        if (args.length >= 3)
+            forecastMaxDaysArg = Double.parseDouble(args[2]);
+
+        final double forecastMinDays = forecastMinDaysArg;
+        final double forecastMaxDays = forecastMaxDaysArg;
+
+        System.out.println("Event ID: " + eventID);
+        System.out.println("Forecast Window: Day " + forecastMinDays + " to Day " + forecastMaxDays);
 
         // Use GeoNet Custom Accessor
         ETAS_GeoNetAccessor accessor = new ETAS_GeoNetAccessor();
@@ -90,13 +105,13 @@ public class ETAS_Demo_NZ {
         GenericETAS_Parameters genericParams = new GenericETAS_Parameters();
 
         // Define simulation/fit parameters
-        double forecastMinDays = 7.0;
-        double forecastMaxDays = 14.0;
+        // double forecastMinDays = 7.0; // Now from CLI
+        // double forecastMaxDays = 14.0; // Now from CLI
         double maxSimMag = 9.5;
         int maxNumGenerations = 10;
         int nSims = 100;
         boolean fitMSProductivity = true;
-        boolean timeDependentMc = false;
+        boolean timeDependentMc = false; // Set to true for early sequences
 
         // Initialize Prior Model (Generic)
         // Initialize Prior Model (Generic)
@@ -158,7 +173,8 @@ public class ETAS_Demo_NZ {
         // 5. Output Results
         DecimalFormat df = new DecimalFormat("0.0000");
         System.out.println("\n--- ETAS Results (NZ/GeoNet) ---");
-        System.out.println("a-value: " + df.format(seqModel.getMaxLikelihood_a()));
+        System.out.println("ams-value (Mainshock Productivity): " + df.format(seqModel.getMaxLikelihood_ams()));
+        System.out.println("a-value (Aftershock Productivity): " + df.format(seqModel.getMaxLikelihood_a()));
         System.out.println("p-value: " + df.format(seqModel.getMaxLikelihood_p()));
         System.out.println("c-value: " + df.format(seqModel.getMaxLikelihood_c()));
         System.out.println("b-value (model): " + df.format(seqModel.get_b()));
@@ -197,6 +213,31 @@ public class ETAS_Demo_NZ {
         System.out.println("M>=3.0: " + df.format(n3));
         System.out.println("M>=4.0: " + df.format(n4));
         System.out.println("M>=5.0: " + df.format(n5));
+
+        // --- Probability of >=1 Event ---
+        double prob4 = 1.0 - Math.exp(-n4);
+        double prob5 = 1.0 - Math.exp(-n5);
+        System.out.println("\nProbability of >=1 event:");
+        System.out.println("M>=4.0: " + df.format(prob4 * 100) + "%");
+        System.out.println("M>=5.0: " + df.format(prob5 * 100) + "%");
+
+        // --- Observed Count for Validation ---
+        // Fetch aftershocks for the forecast window to compare
+        System.out.println("\n--- Observed Aftershocks (Days " + forecastMinDays + "-" + forecastMaxDays + ") ---");
+        ObsEqkRupList forecastWindowAftershocks = accessor.fetchAftershocks(mainshock, forecastMinDays, forecastMaxDays,
+                minDepth, maxDepth, region);
+        int obs3 = 0, obs4 = 0, obs5 = 0;
+        for (ObsEqkRupture r : forecastWindowAftershocks) {
+            if (r.getMag() >= 3.0)
+                obs3++;
+            if (r.getMag() >= 4.0)
+                obs4++;
+            if (r.getMag() >= 5.0)
+                obs5++;
+        }
+        System.out.println("Observed M>=3.0: " + obs3);
+        System.out.println("Observed M>=4.0: " + obs4);
+        System.out.println("Observed M>=5.0: " + obs5);
 
         // --- Export Results to File ---
         try {

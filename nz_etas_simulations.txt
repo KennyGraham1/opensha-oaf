@@ -1,6 +1,6 @@
 ETAS Forecast Results (Kaikoura 2016)
 =====================================
-Analysis Date: Thu Jan 08 08:29:05 NZDT 2026
+Analysis Date: Thu Jan 08 10:20:56 NZDT 2026
 Mag Complete (Mc): 3.0
 Num Simulations: 100
 

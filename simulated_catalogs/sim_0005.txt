@@ -1,9 +1,5 @@
 # Simulation 5
 # RelativeTime(days) Magnitude Generation
 Time Mag Gen
-7.281	 4.99	 1
-7.781	 5.25	 1
-8.072	 4.84	 1
-11.052	 5.18	 1
-12.816	 5.39	 1
-12.875	 5.36	 2
+7.853	 5.49	 1
+13.462	 4.86	 1
