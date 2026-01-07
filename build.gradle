@@ -8,7 +8,7 @@ ext {
     parentProject = 'opensha'
 }
 
-apply from: '../opensha/build-common.gradle'
+apply from: 'opensha_local/build-common.gradle'
 
 dependencies {
 
@@ -39,7 +39,7 @@ void createOafAppTask(String taskName, String prefix, String mainClass) {
         // include compiled source from this project
         from sourceSets.main.allJava
         // include upstream project fat jar
-        from zipTree(file('../'+project.parentProject+'/build/libs/'+project.parentProject+'-all.jar')).matching {
+        from zipTree(file('opensha_local/build/libs/opensha-all.jar')).matching {
             exclude { it.path.contains('META-INF') }
         }
         // include PDL jar
@@ -77,7 +77,7 @@ void createOafServerTask(String taskName, String prefix) {
         // include compiled source from this project
         from sourceSets.main.allJava
         // include upstream project fat jar
-        from zipTree(file('../'+project.parentProject+'/build/libs/'+project.parentProject+'-all.jar')).matching {
+        from zipTree(file('opensha_local/build/libs/opensha-all.jar')).matching {
             exclude { it.path.contains('META-INF') }
             exclude 'build.version'
         }
@@ -102,4 +102,14 @@ createOafAppTask("appETAS_TestJar", "AftershockETAS_Test", "org.opensha.oaf.oeta
 
 // OAF server task
 
-createOafServerTask("oafJar", project.name + '-oaf')
+
+task run(type: JavaExec) {
+    if (System.getProperty('mainClass') != null) {
+        main = System.getProperty('mainClass')
+    } else {
+        main = 'org.opensha.oaf.etas.examples.ETAS_Demo'
+    }
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+}
+
