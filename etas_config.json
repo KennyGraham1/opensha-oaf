@@ -1,0 +1,56 @@
+{
+    "eventId": "2016p858000",
+    "dataSource": "geonet",
+    "dataWindow": {
+        "minDays": 0,
+        "maxDays": 7
+    },
+    "forecastWindow": {
+        "minDays": 7,
+        "maxDays": 14
+    },
+    "region": {
+        "radiusKm": 200,
+        "minDepth": -10,
+        "maxDepth": 100
+    },
+    "catalog": {
+        "magComplete": 3.0
+    },
+    "priors": {
+        "aMean": -2.423,
+        "aSigma": 0.395,
+        "pMean": 1.08,
+        "pSigma": 0.2,
+        "cMean": 0.01,
+        "logcSigma": 0.7,
+        "alpha": 1.0,
+        "b": 1.0,
+        "refMag": 4.5
+    },
+    "gridSearch": {
+        "amsMin": -4.0,
+        "amsMax": 1.0,
+        "amsN": 21,
+        "aMin": -3.5,
+        "aMax": -0.5,
+        "aN": 21,
+        "pMin": 0.5,
+        "pMax": 2.0,
+        "pN": 16,
+        "cMin": 1e-4,
+        "cMax": 1e-1,
+        "cN": 16
+    },
+    "simulation": {
+        "nSims": 100,
+        "maxGenerations": 10,
+        "maxMag": 9.5,
+        "timeDependentMc": false,
+        "fitMSProductivity": true
+    },
+    "output": {
+        "summaryFile": "nz_etas_simulations.txt",
+        "catalogDir": "simulated_catalogs"
+    }
+}

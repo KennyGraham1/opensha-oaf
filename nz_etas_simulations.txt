@@ -1,15 +1,16 @@
-ETAS Forecast Results (Kaikoura 2016)
-=====================================
-Analysis Date: Thu Jan 08 10:20:56 NZDT 2026
+ETAS Forecast Results
+=====================
+Event: 2016p858000
+Analysis Date: Thu Jan 08 10:36:23 NZDT 2026
 Mag Complete (Mc): 3.0
 Num Simulations: 100
 
 --- Fitted Parameters ---
+ams-value: -3.0000
 a-value: -2.0000
 p-value: 1.1000
 c-value: 0.1000
 b-value: 1.0000
-alpha:   1.0000
 
 --- Forecast (Days 7.0-14.0) ---
 M>=3.0: 1831.0588
@@ -17,4 +18,4 @@ M>=4.0: 183.1059
 M>=5.0: 18.3106
 
 --- Simulated Catalogs ---
-Saved 100 catalogs to directory: simulated_catalogs/
+Saved to directory: simulated_catalogs
