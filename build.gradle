@@ -105,9 +105,9 @@ createOafAppTask("appETAS_TestJar", "AftershockETAS_Test", "org.opensha.oaf.oeta
 
 task run(type: JavaExec) {
     if (System.getProperty('mainClass') != null) {
-        main = System.getProperty('mainClass')
+        mainClass = System.getProperty('mainClass')
     } else {
-        main = 'org.opensha.oaf.etas.examples.ETAS_Demo'
+        mainClass = 'org.opensha.oaf.etas.examples.ETAS_Demo'
     }
     classpath = sourceSets.main.runtimeClasspath
     standardInput = System.in
