@@ -197,5 +197,67 @@ public class ETAS_Demo_NZ {
         System.out.println("M>=3.0: " + df.format(n3));
         System.out.println("M>=4.0: " + df.format(n4));
         System.out.println("M>=5.0: " + df.format(n5));
+
+        // --- Export Results to File ---
+        try {
+            java.io.File file = new java.io.File("nz_etas_simulations.txt");
+            java.io.PrintWriter pw = new java.io.PrintWriter(file);
+
+            pw.println("ETAS Forecast Results (Kaikoura 2016)");
+            pw.println("=====================================");
+            pw.println("Analysis Date: " + new java.util.Date());
+            pw.println("Mag Complete (Mc): " + magComplete);
+            pw.println("Num Simulations: " + nSims);
+            pw.println();
+
+            pw.println("--- Fitted Parameters ---");
+            pw.println("a-value: " + df.format(seqModel.getMaxLikelihood_a()));
+            pw.println("p-value: " + df.format(seqModel.getMaxLikelihood_p()));
+            pw.println("c-value: " + df.format(seqModel.getMaxLikelihood_c()));
+            pw.println("b-value: " + df.format(seqModel.get_b()));
+            pw.println("alpha:   " + df.format(genericParams.get_alpha()));
+            pw.println();
+
+            pw.println("--- Forecast (Days " + forecastMinDays + "-" + forecastMaxDays + ") ---");
+            pw.println("M>=3.0: " + df.format(n3));
+            pw.println("M>=4.0: " + df.format(n4));
+            pw.println("M>=5.0: " + df.format(n5));
+            pw.println();
+
+            pw.println("--- Simulated Catalogs ---");
+            pw.println("Saved 100 catalogs to directory: simulated_catalogs/");
+
+            pw.close();
+            System.out.println("\nSummary results saved to: " + file.getAbsolutePath());
+
+            // --- Export Separate Simulation Files ---
+            if (seqModel.getSimulatedCatalog() != null) {
+                java.io.File simDir = new java.io.File("simulated_catalogs");
+                if (!simDir.exists())
+                    simDir.mkdir();
+
+                System.out.println("Writing " + nSims + " simulation files to " + simDir.getName() + "...");
+
+                for (int i = 0; i < nSims; i++) {
+                    String fileName = String.format("sim_%04d.txt", (i + 1));
+                    java.io.File simFile = new java.io.File(simDir, fileName);
+                    java.io.PrintWriter simPw = new java.io.PrintWriter(simFile);
+
+                    // Optional Header
+                    simPw.println("# Simulation " + (i + 1));
+                    simPw.println("# RelativeTime(days) Magnitude Generation");
+
+                    String catStr = seqModel.getSimulatedCatalog().printCatalog(i);
+                    simPw.print(catStr); // printCatalog already includes newlines
+                    simPw.close();
+                }
+                System.out.println("Done.");
+            } else {
+                System.out.println("No simulated catalogs available to write.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
