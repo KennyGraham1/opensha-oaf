@@ -521,13 +521,22 @@ public class ETAScatalog {
 		}
 
 		// shuffle those parameters for a more accurate duration estimate
-		java.util.Collections.shuffle(Arrays.asList(params));
+		java.util.Collections.shuffle(Arrays.asList(params), random);
 		return params;
 	}
 
 	private long assignNumberOfOffspring(double lambda) {
-		// return Math.round(lambda); //replace with Poisson random number
-		return cern.jet.random.tdouble.Poisson.staticNextInt(lambda);
+		// Use seeded Poisson distribution
+		if (lambda <= 0)
+			return 0;
+		double L = Math.exp(-lambda);
+		long k = 0;
+		double p = 1.0;
+		do {
+			k++;
+			p *= random.nextDouble();
+		} while (p > L);
+		return k - 1;
 	}
 
 	private double assignMagnitude(double b, double minMag, double Mmax) {
