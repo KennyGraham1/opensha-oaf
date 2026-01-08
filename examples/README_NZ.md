@@ -131,6 +131,22 @@ The output file includes **5th, Median (50th), and 95th percentiles** for event 
 
 This captures **aleatory uncertainty** (inherent randomness in earthquake triggering), not epistemic uncertainty (parameter fitting errors).
 
+### Reproducibility with Random Seed
+By default, each run produces **different** stochastic catalogs due to Monte Carlo randomness. To get **reproducible** results (e.g., for controlled experiments comparing different parameters), set a seed in the config:
+
+```json
+"simulation": {
+    "nSims": 1000,
+    "seed": 12345
+}
+```
+
+**Behavior:**
+*   **Same seed** → Identical catalogs every run
+*   **Remove `seed`** or set to `null` → Random results each run
+
+This allows you to isolate the effect of parameter changes (e.g., compare `p=1.0` vs `p=1.1`) while keeping the stochastic component fixed.
+
 ---
 
 ## 5. Troubleshooting

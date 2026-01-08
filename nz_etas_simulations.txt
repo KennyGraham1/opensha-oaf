@@ -1,7 +1,7 @@
 ETAS Forecast Results
 =====================
 Event: 2016p858000
-Analysis Date: Thu Jan 08 13:33:19 NZDT 2026
+Analysis Date: Thu Jan 08 13:54:39 NZDT 2026
 Mag Complete (Mc): 3.0
 Num Simulations: 1000
 
@@ -27,9 +27,9 @@ Probability of >=1 Event:
 
 --- Uncertainty (from 1000 simulations) ---
 Percentiles of event counts in forecast window:
-  M>=3.0:  5th=1  Median=4  95th=12
-  M>=4.0:  5th=1  Median=4  95th=12
-  M>=5.0:  5th=0  Median=2  95th=8
+  M>=3.0:  5th=37  Median=52  95th=116
+  M>=4.0:  5th=23  Median=35  95th=77
+  M>=5.0:  5th=1  Median=3  95th=10
   M>=6.0:  5th=0  Median=0  95th=2
 
 --- Simulated Catalogs ---
