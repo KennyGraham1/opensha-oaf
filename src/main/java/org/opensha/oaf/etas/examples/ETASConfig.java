@@ -70,6 +70,7 @@ public class ETASConfig {
         public double maxMag;
         public boolean timeDependentMc;
         public boolean fitMSProductivity;
+        public Long seed; // Optional: for reproducibility. If null, uses random seed.
     }
 
     public static class OutputConfig {

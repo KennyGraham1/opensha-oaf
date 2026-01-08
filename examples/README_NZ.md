@@ -117,6 +117,20 @@ The model will simulate all events up to M9.5, but the console output and summar
 *   **`forecastWindow`**: The period you want to *predict* (e.g., Days 7 to 14).
 *   **`priors`**: The initial "Generic" parameters used to stabilize the fit before data takes over.
 
+### How Uncertainty is Calculated
+The output file includes **5th, Median (50th), and 95th percentiles** for event counts. Here's how they're derived:
+
+1.  **Monte Carlo Simulation**: The model generates `nSims` (default: 1000) stochastic "future catalogs". Each represents a possible outcome given the fitted ETAS parameters.
+2.  **Counting**: For each magnitude threshold (e.g., M≥4.0), the code counts how many events occurred in the forecast window across all simulations.
+3.  **Fractiles**: The built-in `getFractileNumEvents()` method sorts these counts and extracts percentiles.
+
+**Interpretation:**
+*   **5th percentile**: Lower bound (90% of simulations had *more* events than this).
+*   **Median**: Typical outcome.
+*   **95th percentile**: Upper bound (only 5% of simulations had *more* events than this).
+
+This captures **aleatory uncertainty** (inherent randomness in earthquake triggering), not epistemic uncertainty (parameter fitting errors).
+
 ---
 
 ## 5. Troubleshooting

@@ -141,6 +141,14 @@ public class ETAS_Demo_NZ {
         System.out.println("Mag Complete: " + config.catalog.magComplete);
         System.out.println("Simulations: " + config.simulation.nSims);
 
+        // --- Set Random Seed for Reproducibility ---
+        if (config.simulation.seed != null) {
+            org.opensha.oaf.etas.ETAScatalog.setSeed(config.simulation.seed);
+            System.out.println("Random Seed: " + config.simulation.seed);
+        } else {
+            System.out.println("Random Seed: (not set - non-reproducible)");
+        }
+
         // --- Fetch Data ---
         ETAS_GeoNetAccessor accessor = new ETAS_GeoNetAccessor();
 
@@ -290,8 +298,31 @@ public class ETAS_Demo_NZ {
             pw.println();
             pw.println("--- Forecast (Days " + config.forecastWindow.minDays + "-" + config.forecastWindow.maxDays
                     + ") ---");
+            pw.println("Expected Number of Events:");
             for (int i = 0; i < forecastMags.length; i++) {
-                pw.println("M>=" + forecastMags[i] + ": " + df.format(forecastRates[i]));
+                pw.println("  M>=" + forecastMags[i] + ": " + df.format(forecastRates[i]));
+            }
+            pw.println();
+            pw.println("Probability of >=1 Event:");
+            for (int i = 0; i < forecastMags.length; i++) {
+                pw.println("  M>=" + forecastMags[i] + ": " + df.format(forecastProbs[i] * 100) + "%");
+            }
+            pw.println();
+
+            // --- Uncertainty from Simulations ---
+            pw.println("--- Uncertainty (from " + config.simulation.nSims + " simulations) ---");
+            pw.println("Percentiles of event counts in forecast window:");
+            for (int magIdx = 0; magIdx < forecastMags.length; magIdx++) {
+                double magThreshold = forecastMags[magIdx];
+                // Use built-in OpenSHA method for fractile calculation
+                double p5 = seqModel.getFractileNumEvents(magThreshold,
+                        config.forecastWindow.minDays, config.forecastWindow.maxDays, 0.05);
+                double p50 = seqModel.getFractileNumEvents(magThreshold,
+                        config.forecastWindow.minDays, config.forecastWindow.maxDays, 0.50);
+                double p95 = seqModel.getFractileNumEvents(magThreshold,
+                        config.forecastWindow.minDays, config.forecastWindow.maxDays, 0.95);
+                pw.println("  M>=" + magThreshold + ":  5th=" + (int) p5 + "  Median=" + (int) p50 + "  95th="
+                        + (int) p95);
             }
             pw.println();
             pw.println("--- Simulated Catalogs ---");

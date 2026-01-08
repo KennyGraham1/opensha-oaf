@@ -49,11 +49,12 @@
         "cN": 16
     },
     "simulation": {
-        "nSims": 100,
+        "nSims": 1000,
         "maxGenerations": 10,
         "maxMag": 9.5,
         "timeDependentMc": false,
-        "fitMSProductivity": true
+        "fitMSProductivity": true,
+        "seed": 12345
     },
     "output": {
         "summaryFile": "nz_etas_simulations.txt",
