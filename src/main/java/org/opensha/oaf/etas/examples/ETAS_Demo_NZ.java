@@ -91,6 +91,7 @@ public class ETAS_Demo_NZ {
 
         c.catalog = new ETASConfig.CatalogConfig();
         c.catalog.magComplete = 3.0;
+        c.catalog.forecastMagnitudes = new double[] { 3.0, 4.0, 5.0 };
 
         c.priors = new ETASConfig.PriorsConfig();
         c.priors.aMean = -2.423;
@@ -228,40 +229,45 @@ public class ETAS_Demo_NZ {
         double bVal = seqModel.get_b();
         double Mc = config.catalog.magComplete;
 
-        double n3 = rateMc * Math.pow(10, -bVal * (3.0 - Mc));
-        double n4 = rateMc * Math.pow(10, -bVal * (4.0 - Mc));
-        double n5 = rateMc * Math.pow(10, -bVal * (5.0 - Mc));
+        // Use configurable forecast magnitudes (default to [3,4,5] if not specified)
+        double[] forecastMags = config.catalog.forecastMagnitudes;
+        if (forecastMags == null || forecastMags.length == 0) {
+            forecastMags = new double[] { 3.0, 4.0, 5.0 };
+        }
+
+        double[] forecastRates = new double[forecastMags.length];
+        double[] forecastProbs = new double[forecastMags.length];
 
         System.out.println(
                 "\nForecast (Days " + config.forecastWindow.minDays + "-" + config.forecastWindow.maxDays + "):");
-        System.out.println("M>=3.0: " + df.format(n3));
-        System.out.println("M>=4.0: " + df.format(n4));
-        System.out.println("M>=5.0: " + df.format(n5));
+        for (int i = 0; i < forecastMags.length; i++) {
+            forecastRates[i] = rateMc * Math.pow(10, -bVal * (forecastMags[i] - Mc));
+            forecastProbs[i] = 1.0 - Math.exp(-forecastRates[i]);
+            System.out.println("M>=" + forecastMags[i] + ": " + df.format(forecastRates[i]));
+        }
 
         // --- Probability ---
-        double prob4 = 1.0 - Math.exp(-n4);
-        double prob5 = 1.0 - Math.exp(-n5);
         System.out.println("\nProbability of >=1 event:");
-        System.out.println("M>=4.0: " + df.format(prob4 * 100) + "%");
-        System.out.println("M>=5.0: " + df.format(prob5 * 100) + "%");
+        for (int i = 0; i < forecastMags.length; i++) {
+            System.out.println("M>=" + forecastMags[i] + ": " + df.format(forecastProbs[i] * 100) + "%");
+        }
 
         // --- Observed Count ---
         System.out.println("\n--- Observed Aftershocks ---");
         ObsEqkRupList forecastWindowAftershocks = accessor.fetchAftershocks(mainshock,
                 config.forecastWindow.minDays, config.forecastWindow.maxDays,
                 config.region.minDepth, config.region.maxDepth, region);
-        int obs3 = 0, obs4 = 0, obs5 = 0;
+
+        int[] observedCounts = new int[forecastMags.length];
         for (ObsEqkRupture r : forecastWindowAftershocks) {
-            if (r.getMag() >= 3.0)
-                obs3++;
-            if (r.getMag() >= 4.0)
-                obs4++;
-            if (r.getMag() >= 5.0)
-                obs5++;
+            for (int i = 0; i < forecastMags.length; i++) {
+                if (r.getMag() >= forecastMags[i])
+                    observedCounts[i]++;
+            }
         }
-        System.out.println("Observed M>=3.0: " + obs3);
-        System.out.println("Observed M>=4.0: " + obs4);
-        System.out.println("Observed M>=5.0: " + obs5);
+        for (int i = 0; i < forecastMags.length; i++) {
+            System.out.println("Observed M>=" + forecastMags[i] + ": " + observedCounts[i]);
+        }
 
         // --- Export ---
         try {
@@ -284,9 +290,9 @@ public class ETAS_Demo_NZ {
             pw.println();
             pw.println("--- Forecast (Days " + config.forecastWindow.minDays + "-" + config.forecastWindow.maxDays
                     + ") ---");
-            pw.println("M>=3.0: " + df.format(n3));
-            pw.println("M>=4.0: " + df.format(n4));
-            pw.println("M>=5.0: " + df.format(n5));
+            for (int i = 0; i < forecastMags.length; i++) {
+                pw.println("M>=" + forecastMags[i] + ": " + df.format(forecastRates[i]));
+            }
             pw.println();
             pw.println("--- Simulated Catalogs ---");
             pw.println("Saved to directory: " + config.output.catalogDir);

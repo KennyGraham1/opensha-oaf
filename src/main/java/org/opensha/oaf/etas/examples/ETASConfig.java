@@ -38,6 +38,7 @@ public class ETASConfig {
 
     public static class CatalogConfig {
         public double magComplete;
+        public double[] forecastMagnitudes; // e.g., [3.0, 4.0, 5.0]
     }
 
     public static class PriorsConfig {

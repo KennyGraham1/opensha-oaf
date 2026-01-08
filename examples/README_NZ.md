@@ -55,10 +55,16 @@ Where:
 *   **Network**: Unrestricted HTTPS access to `service.geonet.org.nz`.
 
 ### Running the Demo
-Navigate to the project root and execute:
+The recommended way to run the demo is using the **Config-Driven Runner**. This allows you to change parameters (like the event ID or forecast window) without recompiling the code.
 
 ```bash
-./gradlew run -DmainClass=org.opensha.oaf.etas.examples.ETAS_Demo_NZ
+./gradlew run -DmainClass=org.opensha.oaf.etas.examples.ETAS_Demo_NZ --args="--config etas_config.json"
+```
+
+You can still run with **legacy command-line arguments** (Event ID, Start Day, End Day), but this is less flexible:
+
+```bash
+./gradlew run -DmainClass=org.opensha.oaf.etas.examples.ETAS_Demo_NZ --args="2016p858000 7 14"
 ```
 
 ### Output Files
@@ -81,24 +87,35 @@ The script generates results in the project root directory:
 
 ---
 
-## 4. Configuration
+## 4. Configuration (`etas_config.json`)
 
-To modify the analysis, you must edit `src/main/java/org/opensha/oaf/etas/examples/ETAS_Demo_NZ.java`. Key variables include:
+You can edit `etas_config.json` to customize the run. Key sections include:
 
-### Event Selection
-*   **`EVENT_ID`** (Line ~20): The GeoNet Public ID of the mainshock (e.g., `2016p858000` for Kaikōura).
-    *   *Find IDs at [quakesearch.geonet.org.nz](https://quakesearch.geonet.org.nz/)*.
+### Simulation vs. Reporting Parameters
+A common confusion is the difference between `maxMag` and `forecastMagnitudes`.
 
-### Model Parameters
-*   **`magComplete`** (Line ~80): The magnitude below which the catalog is considered incomplete.
-    *   *Default*: `3.0` (Conservative for NZ).
-    *   *Effect*: Lowering this (e.g., to 2.5) adds more recommended data but risks bias if the network missed small events.
-*   **`forecastMinDays`** / **`forecastMaxDays`** (Line ~40): The start and end time (in days relative to mainshock) for the forecast.
-    *   *Example*: `7.0` to `14.0` forecasts the second week.
+| Parameter | Section | Description |
+| :--- | :--- | :--- |
+| **`maxMag`** | `"simulation"` | **Physics Limit.** This is the maximum magnitude the updated model *can* generate during its stochastic simulations. It acts as a physical upper bound (e.g., set to 9.5 to allow for M9+ events, but prevent infinite energy). |
+| **`forecastMagnitudes`** | `"catalog"` | **Reporting Filter.** This controls what you *see* in the output text. It does not affect the simulation itself, only the summary statistics. |
 
-### Simulation Settings
-*   **`nSims`** (Line ~45): Number of stochastic simulations to run.
-    *   *Default*: `100`. Increase to `1000+` for publication-quality statistics.
+**In short:**
+*   `maxMag` = **Physics limit** (what the model *can* produce)
+*   `forecastMagnitudes` = **Reporting filter** (what you *want to see* in the output)
+
+**Example:**
+If you set:
+```json
+"simulation": { "maxMag": 9.5 },
+"catalog": { "forecastMagnitudes": [4.0, 5.0] }
+```
+The model will simulate all events up to M9.5, but the console output and summary file will only calculate and show the rates/probabilities for **M≥4.0** and **M≥5.0**. (No M≥3.0 or M≥6.0 rows, even though those events exist in the simulation.)
+
+### Other Key Settings
+*   **`eventId`**: The GeoNet Event ID (e.g., `2016p858000`).
+*   **`dataWindow`**: The period used to *train* the model (e.g., Days 0 to 7).
+*   **`forecastWindow`**: The period you want to *predict* (e.g., Days 7 to 14).
+*   **`priors`**: The initial "Generic" parameters used to stabilize the fit before data takes over.
 
 ---
 
