@@ -5,8 +5,10 @@ import java.text.DecimalFormat;
 import org.opensha.commons.geo.Location;
 import org.opensha.oaf.etas.ETAS_AftershockModel_Generic;
 import org.opensha.oaf.etas.ETAS_AftershockModel_SequenceSpecific;
+import org.opensha.oaf.etas.ETAS_RateModel2D;
 import org.opensha.oaf.etas.ETAS_StatsCalc;
 import org.opensha.oaf.etas.GenericETAS_Parameters;
+import org.opensha.commons.data.xyz.GriddedGeoDataSet;
 import org.opensha.oaf.util.SphLatLon;
 import org.opensha.oaf.util.SphRegion;
 import org.opensha.sha.earthquake.observedEarthquake.ObsEqkRupList;
@@ -128,6 +130,16 @@ public class ETAS_Demo_NZ {
         c.output = new ETASConfig.OutputConfig();
         c.output.summaryFile = "nz_etas_simulations.txt";
         c.output.catalogDir = "simulated_catalogs";
+
+        c.spatial = new ETASConfig.SpatialConfig();
+        c.spatial.enabled = false;
+        c.spatial.spacing = 0.05;
+        c.spatial.scale = 5.0;
+        c.spatial.stressDrop = 3.0;
+        c.spatial.fitType = "aftershocks";
+        c.spatial.plotDuration = 7.0;
+        c.spatial.outputCsvFile = "spatial_rate_map.csv";
+        c.spatial.outputKmlFile = "spatial_rate_map.kml";
 
         return c;
     }
@@ -353,6 +365,43 @@ public class ETAS_Demo_NZ {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        // --- Spatial Rate Map ---
+        if (config.spatial != null && config.spatial.enabled) {
+            System.out.println("\n--- Computing Spatial Rate Map ---");
+            try {
+                ETAS_RateModel2D rateModel2D = new ETAS_RateModel2D(seqModel);
+                GriddedGeoDataSet rateGrid = rateModel2D.calculateRateModel(
+                        config.spatial.plotDuration,
+                        config.spatial.scale,
+                        config.spatial.spacing,
+                        config.spatial.stressDrop,
+                        config.dataWindow.maxDays,
+                        config.spatial.fitType,
+                        null);
+
+                if (config.spatial.outputCsvFile != null && !config.spatial.outputCsvFile.isEmpty()) {
+                    rateModel2D.writeGriddedDataAsCSV(rateGrid, new java.io.File(config.spatial.outputCsvFile));
+                    System.out.println("Spatial CSV saved to: " + config.spatial.outputCsvFile);
+                }
+
+                if (config.spatial.outputKmlFile != null && !config.spatial.outputKmlFile.isEmpty()) {
+                    int nContours = 10;
+                    java.util.List<wContour.Global.PolyLine> contours = ETAS_RateModel2D.getContours(rateGrid, nContours);
+                    java.awt.Color[] colorMap = new java.awt.Color[]{
+                            java.awt.Color.BLUE, java.awt.Color.CYAN, java.awt.Color.GREEN,
+                            java.awt.Color.YELLOW, java.awt.Color.RED};
+                    org.opensha.commons.util.cpt.CPT cpt = new org.opensha.commons.util.cpt.CPT(
+                            0, rateGrid.getMaxZ(), colorMap);
+                    ETAS_RateModel2D.writeContoursAsKML(contours, config.eventId, " events", new java.io.File(config.spatial.outputKmlFile), cpt);
+                    System.out.println("Spatial KML saved to: " + config.spatial.outputKmlFile);
+                }
+
+            } catch (Exception e) {
+                System.err.println("Spatial rate map failed: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 }

@@ -22,6 +22,7 @@ public class ETASConfig {
     public GridSearchConfig gridSearch;
     public SimulationConfig simulation;
     public OutputConfig output;
+    public SpatialConfig spatial;
 
     // --- Nested Config Classes ---
 
@@ -76,6 +77,17 @@ public class ETASConfig {
     public static class OutputConfig {
         public String summaryFile;
         public String catalogDir;
+    }
+
+    public static class SpatialConfig {
+        public boolean enabled;
+        public double spacing;        // grid spacing in degrees
+        public double scale;          // map extent in rupture lengths
+        public double stressDrop;     // stress drop in MPa
+        public String fitType;        // "aftershocks", "shakemap", or "point"
+        public double plotDuration;   // duration of spatial forecast in days
+        public String outputCsvFile;
+        public String outputKmlFile;
     }
 
     // --- Static Loader ---

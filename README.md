@@ -9,6 +9,10 @@ This fork introduces significant improvements to the ETAS modeling capabilities 
 *   **Configurable ETAS Runner**:
     *   Replaced hardcoded parameters with a flexible JSON-based configuration system (`ETASConfig`).
     *   Simulations can now be driven by `etas_config.json`, allowing control over duration, number of simulations, and magnitude thresholds without recompiling.
+*   **Spatial Rate Maps**:
+    *   Added 2D spatial forecasting via `ETAS_RateModel2D`, producing grid-based rate maps of expected aftershock locations.
+    *   Outputs both CSV (lat/lon/rate) and KML (contour map for Google Earth) formats.
+    *   Controlled via the `spatial` block in `etas_config.json`. Disabled by default.
 *   **Reproducibility**:
     *   Added support for random seeds in simulations, ensuring that results can be strictly reproduced for debugging and verification.
 *   **Simulated Catalogs**:
