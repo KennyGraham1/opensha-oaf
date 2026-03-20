@@ -815,6 +815,53 @@ public class ETAS_RateModel2D {
 		
 		return hexString.toString();
 	}
-	
-	
+
+
+	/**
+	 * Samples a child event location from the isotropic spatial kernel
+	 *   S(r) ∝ H·d / ((d²+r²) · sqrt(H²/4 + d² + r²))
+	 * using exact analytical CDF inversion (no grid, no rejection sampling).
+	 *
+	 * Derivation: integrating S(r)·2π·r dr in polar coordinates yields an
+	 * antiderivative A(r) = d·ln[(v - H/2)/(v + H/2)] where
+	 * v = sqrt(H²/4 + d² + r²).  Setting CDF(r) = u and solving for r gives:
+	 *   k = exp(A(0) · (1 - u) / d)
+	 *   v = (H/2) · (1 + k) / (1 - k)
+	 *   r = sqrt(v² - H²/4 - d²)
+	 *
+	 * @param parentLat   parent latitude  (degrees)
+	 * @param parentLon   parent longitude (degrees)
+	 * @param parentMag   parent magnitude
+	 * @param stressDrop  stress drop in MPa (controls source radius d)
+	 * @param H           seismogenic depth in km (typically 10)
+	 * @param rng         random number generator
+	 * @return double[] { childLat, childLon }
+	 */
+	public static double[] sampleLocation(double parentLat, double parentLon, double parentMag,
+			double stressDrop, double H, java.util.Random rng) {
+
+		double d  = ETAS_StatsCalc.magnitude2radius(parentMag, stressDrop);
+		double H2 = H * H / 4.0;
+		double d2 = d * d;
+		double sqrtH2d2 = Math.sqrt(H2 + d2);
+
+		// A(0) — the antiderivative evaluated at r = 0, always < 0
+		double A0 = d * Math.log((sqrtH2d2 - H / 2.0) / (sqrtH2d2 + H / 2.0));
+
+		double u = rng.nextDouble();
+		double k = Math.exp(A0 * (1.0 - u) / d);   // k in (0, 1)
+		double v = (H / 2.0) * (1.0 + k) / (1.0 - k);
+		double r2 = v * v - H2 - d2;
+		if (r2 < 0) r2 = 0;
+		double r = Math.sqrt(r2);   // distance in km
+		if (r > 500) r = 500;       // cap against numerical blow-up when u → 1
+
+		double azimuth = rng.nextDouble() * 2.0 * Math.PI;
+
+		// flat-Earth offset in degrees (adequate for distances < 500 km)
+		double dLatDeg = r * Math.cos(azimuth) / 111.195;
+		double dLonDeg = r * Math.sin(azimuth) / (111.195 * Math.cos(Math.toRadians(parentLat)));
+
+		return new double[]{ parentLat + dLatDeg, parentLon + dLonDeg };
+	}
 }

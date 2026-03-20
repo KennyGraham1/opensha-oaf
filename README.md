@@ -20,27 +20,60 @@ This fork introduces significant improvements to the ETAS modeling capabilities 
 *   **Codebase Cleanliness**:
     *   Removed accidental binary commits (class files) to reduce repository bloat.
 
-## Running the NZ Example
+## Setup
 
-For a complete guide on running the New Zealand ETAS demonstration, including configuration details and output interpretation, please refer to [docs/README_NZ.md](docs/README_NZ.md).
+This software depends on the [upstream OpenSHA](https://github.com/opensha/opensha) project. Both repositories must live in the **same parent directory**:
 
-Quick start command:
+```bash
+mkdir ~/opensha && cd ~/opensha
+git clone https://github.com/opensha/opensha
+git clone https://github.com/KennyGraham1/opensha-oaf
+cd opensha-oaf
+```
+
+**Requirements**: Java 11 or higher. Gradle is included via the wrapper — no separate install needed.
+
+## Running the NZ Demo
+
+For full configuration details, output interpretation, and the spatial forecasting extension, see [docs/README_NZ.md](docs/README_NZ.md).
+
+### 1. Create `etas_config.json`
+
+Place this file in the project root (edit the `eventId` and windows to suit your event):
+
+```json
+{
+    "eventId": "2016p858000",
+    "dataSource": "geonet",
+    "dataWindow":     { "minDays": 0, "maxDays": 7  },
+    "forecastWindow": { "minDays": 7, "maxDays": 14 },
+    "region": { "radiusKm": 200, "minDepth": -10, "maxDepth": 100 },
+    "catalog": { "magComplete": 3.0, "forecastMagnitudes": [3.0, 4.0, 5.0] },
+    "simulation": { "nSims": 100, "seed": 12345 },
+    "output": { "summaryFile": "nz_etas_simulations.txt", "catalogDir": "simulated_catalogs" }
+}
+```
+
+### 2. Run the demo
 
 ```bash
 ./gradlew run -DmainClass=org.opensha.oaf.etas.examples.ETAS_Demo_NZ --args="--config etas_config.json"
 ```
 
-## Setup
-
-This software depends on the [upstream OpenSHA](https://github.com/opensha/opensha) project which should be cloned into the same directory:
+Or with positional arguments (event ID, data end day, forecast end day):
 
 ```bash
-cd ~/opensha    # or whatever directory you choose
-git clone https://github.com/opensha/opensha
-git clone https://github.com/KennyGraham1/opensha-oaf
+./gradlew run -DmainClass=org.opensha.oaf.etas.examples.ETAS_Demo_NZ --args="2016p858000 7 14"
 ```
 
-**Requirements**: Java version 11 or higher.
+### 3. Check the output
+
+| File | Contents |
+| :--- | :--- |
+| `nz_etas_simulations.txt` | Fitted parameters and forecast table |
+| `simulated_catalogs/sim_NNNN.txt` | One synthetic catalog per simulation |
+
+The first run will download Gradle dependencies and compile — subsequent runs are faster.
 
 ## About the Original USGS Project
 

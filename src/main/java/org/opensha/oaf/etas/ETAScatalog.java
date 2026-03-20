@@ -58,15 +58,42 @@ public class ETAScatalog {
 	// private List<List<float[]>> catalogTimesList; //list of catalog times
 	private boolean validate;
 
-	// Static Random instance for reproducibility
+	// Static Random instances — kept separate so spatial draws don't shift the temporal stream
 	private static java.util.Random random = new java.util.Random();
+	private static java.util.Random spatialRandom = new java.util.Random();
 
 	/**
 	 * Set a seed for reproducible simulations.
 	 * Call this before creating an ETAScatalog if you want reproducible results.
+	 * The spatial RNG is seeded with seed+1 so the two streams are independent.
 	 */
 	public static void setSeed(long seed) {
 		random = new java.util.Random(seed);
+		spatialRandom = new java.util.Random(seed + 1L);
+	}
+
+	// Static spatial sampling config — set before constructing the model
+	private static boolean staticSpatialEnabled = false;
+	private static double staticStressDrop = 3.0;
+	private static double staticH = 10.0;
+
+	// Instance copies (set during construction from statics)
+	private boolean spatialEnabled;
+	private double spatialStressDrop;
+	private double spatialH;
+
+	/**
+	 * Configure spatial location sampling for all subsequently constructed
+	 * ETAScatalog instances. Call this before creating the ETAS_AftershockModel.
+	 *
+	 * @param enabled     whether to sample lat/lon for each synthetic event
+	 * @param stressDrop  source stress drop in MPa (default 3.0)
+	 * @param H           seismogenic depth in km (default 10.0)
+	 */
+	public static void configureSpatialSampling(boolean enabled, double stressDrop, double H) {
+		staticSpatialEnabled = enabled;
+		staticStressDrop = stressDrop;
+		staticH = H;
 	}
 
 	public ETAScatalog(double[] ams_vec, double[] a_vec, double[] p_vec, double[] c_vec, double[][][][] likelihood,
@@ -91,6 +118,9 @@ public class ETAScatalog {
 		this.maxGenerations = maxGenerations;
 		this.nSims = nSims;
 		this.validate = validate;
+		this.spatialEnabled = staticSpatialEnabled;
+		this.spatialStressDrop = staticStressDrop;
+		this.spatialH = staticH;
 
 		if (D)
 			System.out.println("ETAS simulation params: alpha=" + alpha + " b=" + b + " Mref=" + refMag + " Mc=" + Mc
@@ -281,10 +311,13 @@ public class ETAScatalog {
 		// go through seed (observed) earthquake list, add each event to a pared-down
 		// eventList and add simulated children
 		for (ObsEqkRupture rup : seedQuakes) {
-			float[] event = new float[3];
+			float[] event = new float[5]; // [time, mag, gen, lat, lon]
 			event[0] = (float) ((rup.getOriginTime() - t0) / ETAS_StatsCalc.MILLISEC_PER_DAY); // elapsed time in days
 			event[1] = (float) rup.getMag();
 			event[2] = 0; // generation number
+			org.opensha.commons.geo.Location loc = rup.getHypocenterLocation();
+			event[3] = (float) loc.getLatitude();
+			event[4] = (float) loc.getLongitude();
 
 			// check whether event is prior to forecast start, and larger than Mc
 			// if( event[0] <= forecastStart && event[0] >= 0 && event[1] >= Mc){
@@ -294,7 +327,7 @@ public class ETAScatalog {
 
 				// add children
 				newEqList = getChildren(newEqList, event[0], event[1], (int) event[2], a_sample, p_sample, c_sample,
-						simNumber);
+						simNumber, event[3], event[4]);
 
 			} else {
 				// System.out.println("Skipping Seed "+counter++);
@@ -321,7 +354,8 @@ public class ETAScatalog {
 	}
 
 	private List<float[]> getChildren(List<float[]> newEqList, float t, float mag, int ngen,
-			double a_sample, double p_sample, double c_sample, int simNumber) {// , double forecastStart, double
+			double a_sample, double p_sample, double c_sample, int simNumber,
+			float parentLat, float parentLon) {// , double forecastStart, double
 																				// forecastEnd,
 		// double a, double b, double p, double c, double alpha, double refMag, double
 		// maxMag, int maxGen){
@@ -356,8 +390,7 @@ public class ETAScatalog {
 		if (numNew > 0 && ngen < maxGenerations) {
 			// for each new child, assign a magnitude and time
 			for (long i = 0; i < numNew; i++) {
-				float[] event = new float[3]; // this must be declared within for block, in order to generate a new
-												// address
+				float[] event = new float[5]; // [time, mag, gen, lat, lon] — declared inside loop for unique address
 
 				// assign a magnitude
 				// newMag = (float) assignMagnitude(b, Mc, maxMagLimit);
@@ -370,10 +403,22 @@ public class ETAScatalog {
 				event[1] = newMag;
 				event[2] = ngen + 1;
 
+				// sample location from parent's spatial kernel
+				if (spatialEnabled) {
+					double[] childLoc = ETAS_RateModel2D.sampleLocation(
+							parentLat, parentLon, mag, spatialStressDrop, spatialH, spatialRandom);
+					event[3] = (float) childLoc[0];
+					event[4] = (float) childLoc[1];
+				} else {
+					event[3] = parentLat;
+					event[4] = parentLon;
+				}
+
 				newEqList.add(event);
 
 				// recursively get children of new child
-				newEqList = getChildren(newEqList, newTime, newMag, ngen + 1, a_sample, p_sample, c_sample, simNumber);// ,
+				newEqList = getChildren(newEqList, newTime, newMag, ngen + 1, a_sample, p_sample, c_sample, simNumber,
+						event[3], event[4]);// ,
 																														// forecastStart,
 																														// forecastEnd,
 																														// a,
@@ -704,10 +749,18 @@ public class ETAScatalog {
 	public String printCatalog(int index) {
 		List<float[]> eqList = getETAScatalog(index);
 
-		StringBuffer paragraph = new StringBuffer("Time Mag Gen\n");
-		for (float[] eq : eqList) {
-			// paragraph.append(String.format("%5.2f%n", eq[0]));
-			paragraph.append(String.format("%4.3f\t %3.2f\t %1.0f\n", eq[0], eq[1], eq[2]));
+		StringBuffer paragraph;
+		if (spatialEnabled) {
+			paragraph = new StringBuffer("Time Mag Gen Lat Lon\n");
+			for (float[] eq : eqList) {
+				paragraph.append(String.format("%4.3f\t %3.2f\t %1.0f\t %8.4f\t %9.4f\n",
+						eq[0], eq[1], eq[2], eq[3], eq[4]));
+			}
+		} else {
+			paragraph = new StringBuffer("Time Mag Gen\n");
+			for (float[] eq : eqList) {
+				paragraph.append(String.format("%4.3f\t %3.2f\t %1.0f\n", eq[0], eq[1], eq[2]));
+			}
 		}
 		return paragraph.toString();
 	}

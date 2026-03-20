@@ -59,5 +59,15 @@
     "output": {
         "summaryFile": "nz_etas_simulations.txt",
         "catalogDir": "simulated_catalogs"
+    },
+    "spatial": {
+        "enabled": true,
+        "spacing": 0.05,
+        "scale": 5.0,
+        "stressDrop": 3.0,
+        "fitType": "aftershocks",
+        "plotDuration": 7.0,
+        "outputCsvFile": "spatial_rate_map.csv",
+        "outputKmlFile": "spatial_rate_map.kml"
     }
 }

@@ -221,6 +221,14 @@ public class ETAS_Demo_NZ {
         double[] pVec = ETAS_StatsCalc.linspace(config.gridSearch.pMin, config.gridSearch.pMax, config.gridSearch.pN);
         double[] cVec = ETAS_StatsCalc.logspace(config.gridSearch.cMin, config.gridSearch.cMax, config.gridSearch.cN);
 
+        // --- Configure Spatial Location Sampling (must be set before seqModel is constructed) ---
+        if (config.spatial != null && config.spatial.enabled) {
+            org.opensha.oaf.etas.ETAScatalog.configureSpatialSampling(true, config.spatial.stressDrop, 10.0);
+            System.out.println("Spatial location sampling: ENABLED (stressDrop=" + config.spatial.stressDrop + " MPa)");
+        } else {
+            org.opensha.oaf.etas.ETAScatalog.configureSpatialSampling(false, 3.0, 10.0);
+        }
+
         // --- Run Sequence Specific Model ---
         System.out.println("\nComputing sequence-specific ETAS model...");
         ETAS_AftershockModel_SequenceSpecific seqModel = new ETAS_AftershockModel_SequenceSpecific(
@@ -355,7 +363,11 @@ public class ETAS_Demo_NZ {
                     java.io.File simFile = new java.io.File(simDir, fileName);
                     java.io.PrintWriter simPw = new java.io.PrintWriter(simFile);
                     simPw.println("# Simulation " + (i + 1));
-                    simPw.println("# RelativeTime(days) Magnitude Generation");
+                    if (config.spatial != null && config.spatial.enabled) {
+                        simPw.println("# RelativeTime(days) Magnitude Generation Latitude Longitude");
+                    } else {
+                        simPw.println("# RelativeTime(days) Magnitude Generation");
+                    }
                     String catStr = seqModel.getSimulatedCatalog().printCatalog(i);
                     simPw.print(catStr);
                     simPw.close();
