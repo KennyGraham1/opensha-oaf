@@ -13,8 +13,14 @@ This fork introduces significant improvements to the ETAS modeling capabilities 
     *   Added 2D spatial forecasting via `ETAS_RateModel2D`, producing grid-based rate maps of expected aftershock locations.
     *   Outputs both CSV (lat/lon/rate) and KML (contour map for Google Earth) formats.
     *   Controlled via the `spatial` block in `etas_config.json`. Disabled by default.
+*   **Per-Event Spatial Location Sampling**:
+    *   When `spatial.enabled = true`, each synthetic event in the Monte Carlo catalogs is assigned a lat/lon by sampling from the isotropic spatial kernel using exact analytical CDF inversion.
+    *   Location draws use a separate RNG so enabling spatial output does not change the temporal simulation stream.
+    *   Catalog files gain two extra columns: `Latitude` and `Longitude`.
 *   **Reproducibility**:
     *   Added support for random seeds in simulations, ensuring that results can be strictly reproduced for debugging and verification.
+*   **Pre-built Fat Jar**:
+    *   Added `appNZDemoJar` Gradle task and `run_nz_demo.sh` wrapper, allowing the demo to be run with a plain `java -jar` command — no Gradle required after the initial build.
 *   **Simulated Catalogs**:
     *   Integrated new simulated catalog examples, including specific scenarios for New Zealand (NZ).
 *   **Codebase Cleanliness**:
@@ -56,14 +62,30 @@ Place this file in the project root (edit the `eventId` and windows to suit your
 
 ### 2. Run the demo
 
+**Option A — via Gradle** (compiles and runs in one step, good for development):
+
 ```bash
 ./gradlew run -DmainClass=org.opensha.oaf.etas.examples.ETAS_Demo_NZ --args="--config etas_config.json"
+```
+
+**Option B — via pre-built fat jar** (faster for repeated runs, no Gradle overhead):
+
+```bash
+# Build the jar once (only needed after code changes)
+./gradlew appNZDemoJar
+
+# Then run directly
+./run_nz_demo.sh                        # uses etas_config.json automatically
+./run_nz_demo.sh path/to/config.json    # custom config
+java -jar build/libs/ETAS_Demo_NZ.jar --config etas_config.json   # explicit
 ```
 
 Or with positional arguments (event ID, data end day, forecast end day):
 
 ```bash
 ./gradlew run -DmainClass=org.opensha.oaf.etas.examples.ETAS_Demo_NZ --args="2016p858000 7 14"
+# or
+./run_nz_demo.sh 2016p858000 7 14
 ```
 
 ### 3. Check the output
@@ -71,9 +93,11 @@ Or with positional arguments (event ID, data end day, forecast end day):
 | File | Contents |
 | :--- | :--- |
 | `nz_etas_simulations.txt` | Fitted parameters and forecast table |
-| `simulated_catalogs/sim_NNNN.txt` | One synthetic catalog per simulation |
+| `simulated_catalogs/sim_NNNN.txt` | One synthetic catalog per simulation (5 columns when spatial is enabled) |
+| `spatial_rate_map.csv` | Grid of expected aftershock rates (requires `spatial.enabled: true`) |
+| `spatial_rate_map.kml` | Contour map for Google Earth (requires `spatial.enabled: true`) |
 
-The first run will download Gradle dependencies and compile — subsequent runs are faster.
+The first Gradle run will download dependencies and compile — subsequent runs and `java -jar` runs are faster.
 
 ## About the Original USGS Project
 

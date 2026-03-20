@@ -68,9 +68,39 @@ git clone https://github.com/KennyGraham1/opensha-oaf
 cd opensha-oaf
 ```
 
+Then create the required symlink so Gradle can find the OpenSHA source:
+
+```bash
+ln -s ../opensha opensha_local
+```
+
 ---
 
-### Step 2 — Create your config file
+### Step 2 — Compile
+
+Gradle manages compilation. The wrapper (`./gradlew`) is included — no separate Gradle install needed.
+
+**Option A — compile and run in one step** (development workflow):
+
+```bash
+./gradlew run -DmainClass=org.opensha.oaf.etas.examples.ETAS_Demo_NZ --args="--config etas_config.json"
+```
+
+Gradle will compile everything automatically before running.
+
+**Option B — build a standalone fat jar** (recommended for repeated use):
+
+```bash
+./gradlew appNZDemoJar
+```
+
+This produces `build/libs/ETAS_Demo_NZ.jar` — a self-contained jar with all dependencies bundled. After this, you can run with plain `java` and never need Gradle again unless the code changes.
+
+> **When to recompile**: only after editing `.java` source files. Config changes (`etas_config.json`) take effect immediately without recompiling.
+
+---
+
+### Step 3 — Create your config file
 
 Copy the example below into a file named `etas_config.json` in the project root. This runs a hindcast for the 2016 M7.8 Kaikōura earthquake, training on the first 7 days of aftershocks and forecasting days 7–14.
 
@@ -120,7 +150,9 @@ Copy the example below into a file named `etas_config.json` in the project root.
 
 ---
 
-### Step 3 — Run the demo
+### Step 4 — Run the demo
+
+**Option A — via Gradle** (compiles and runs in one step):
 
 ```bash
 ./gradlew run -DmainClass=org.opensha.oaf.etas.examples.ETAS_Demo_NZ --args="--config etas_config.json"
@@ -128,17 +160,33 @@ Copy the example below into a file named `etas_config.json` in the project root.
 
 The first run will download Gradle dependencies and compile the project. Subsequent runs are faster.
 
-You can also run with **positional arguments** as a quick one-liner (event ID, data end day, forecast end day):
+**Option B — via pre-built fat jar** (recommended for repeated use — no Gradle overhead after initial build):
+
+```bash
+# Build once (only needed after code changes)
+./gradlew appNZDemoJar
+
+# Run using the convenience script
+./run_nz_demo.sh                         # picks up etas_config.json automatically
+./run_nz_demo.sh path/to/config.json     # custom config path
+
+# Or directly with java
+java -jar build/libs/ETAS_Demo_NZ.jar --config etas_config.json
+```
+
+You can also pass **positional arguments** (event ID, data end day, forecast end day) with either approach:
 
 ```bash
 ./gradlew run -DmainClass=org.opensha.oaf.etas.examples.ETAS_Demo_NZ --args="2016p858000 7 14"
+# or
+./run_nz_demo.sh 2016p858000 7 14
 ```
 
 This uses hardcoded defaults for everything except the three arguments — less flexible, but useful for quick checks.
 
 ---
 
-### Step 4 — Check the console output
+### Step 5 — Check the console output
 
 A successful run produces output like the following:
 
@@ -195,24 +243,38 @@ Done.
 
 ---
 
-### Step 5 — Inspect the output files
+### Step 6 — Inspect the output files
 
 | File | What it contains |
 | :--- | :--- |
 | `nz_etas_simulations.txt` | Summary: fitted parameters, expected counts, percentile uncertainty table |
-| `simulated_catalogs/sim_0001.txt` … `sim_0100.txt` | One file per Monte Carlo simulation. Each row is a synthetic event: `RelativeTime(days)  Magnitude  Generation` |
+| `simulated_catalogs/sim_0001.txt` … `sim_NNNN.txt` | One file per Monte Carlo simulation |
+| `spatial_rate_map.csv` | Grid of expected aftershock rates — only written when `spatial.enabled: true` |
+| `spatial_rate_map.kml` | Contour map for Google Earth — only written when `spatial.enabled: true` |
 
-**Simulated catalog format:**
+**Simulated catalog format (spatial disabled):**
 
 ```text
 # Simulation 1
 # RelativeTime(days) Magnitude Generation
+Time Mag Gen
 7.123    4.5    1
 8.441    3.2    2
 9.870    3.1    3
 ```
 
-`Generation` indicates how many steps removed from the mainshock: `1` = direct aftershock, `2` = aftershock of an aftershock, etc.
+**Simulated catalog format (spatial enabled):**
+
+```text
+# Simulation 1
+# RelativeTime(days) Magnitude Generation Latitude Longitude
+Time Mag Gen Lat Lon
+7.129    5.91    1    -42.0265    173.6600
+7.748    4.85    2    -41.9469    173.6572
+10.097   6.04    1    -41.7435    174.1773
+```
+
+`Generation` indicates how many steps removed from the mainshock: `1` = direct aftershock, `2` = aftershock of an aftershock, etc. Each event's lat/lon is sampled from the spatial kernel centred on its **parent event**, so spatial clustering propagates through the aftershock tree.
 
 ---
 
@@ -280,7 +342,12 @@ This allows you to isolate the effect of parameter changes (e.g., compare `p=1.0
 
 ## 5. Spatial Forecasting
 
-In addition to the temporal count forecasts, the demo can generate a **2D spatial rate map** showing the geographic distribution of expected aftershock activity. This is disabled by default and enabled via the `spatial` block in `etas_config.json`.
+In addition to the temporal count forecasts, enabling `spatial` does two things:
+
+1. **2D rate map** — a deterministic grid of expected aftershock rates (`spatial_rate_map.csv` / `.kml`)
+2. **Per-event locations** — each synthetic event in the Monte Carlo catalogs is assigned a lat/lon by sampling from the spatial kernel, adding `Latitude` and `Longitude` columns to every `sim_NNNN.txt` file
+
+Both are controlled by the `spatial` block in `etas_config.json` and are disabled by default.
 
 ### How It Works
 
