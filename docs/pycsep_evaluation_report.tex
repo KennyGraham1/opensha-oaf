@@ -41,9 +41,68 @@ NZ ETAS forecast for the 2016 M7.82 Kaik\={o}ura earthquake sequence
 (GeoNet event \texttt{2016p858000}, mainshock UTC origin time
 \texttt{2016-11-13T11:02:56Z}).
 
+\subsection{Two-phase protocol: calibration then forecast}
+
+The pipeline operates in two strictly separate phases, configured in
+\texttt{etas\_config.json}:
+
+\begin{description}
+    \item[\textbf{Data / calibration window} (Days 0--7 post-mainshock):]
+        GeoNet aftershocks from
+        \texttt{2016-11-13T11:02:56Z} to \texttt{2016-11-20T11:02:56Z}
+        within a 200\,km epicentral radius are fetched
+        (\texttt{dataWindow.minDays = 0}, \texttt{maxDays = 7}).
+        These observations are used \emph{only} to fit the ETAS
+        parameters via maximum-likelihood grid search;
+        they are never compared against the forecast.
+
+    \item[\textbf{Forecast window} (Days 7--14 post-mainshock):]
+        The fitted model is run forward from
+        \texttt{2016-11-20T11:02:56Z} to \texttt{2016-11-27T11:02:56Z}
+        (\texttt{forecastWindow.minDays = 7}, \texttt{maxDays = 14}).
+        All 1{,}000 Monte Carlo simulations start at $t = 7$~days; the
+        simulated catalogs confirm this: \texttt{sim\_0008.txt} line 4
+        begins at $t = 7.001$~days, not $t = 0$.
+        The GeoNet observed catalog over the same absolute window is
+        fetched independently and used only for evaluation.
+\end{description}
+
+\subsection{ETAS configuration (\texttt{etas\_config.json})}
+
+\begin{description}
+    \item[\textbf{Generic NZ priors}:]
+        $\bar{a} = -2.423\ (\sigma = 0.395)$,
+        $\bar{p} = 1.08\ (\sigma = 0.20)$,
+        $\bar{c} = 0.01\ (\sigma_{\log c} = 0.70)$,
+        $\alpha = 1.0$, $b = 1.0$, $M_\text{ref} = 4.5$.
+        These are the standard NZ generic ETAS parameters.
+
+    \item[\textbf{MLE grid search}:]
+        $a_\text{ms}$: 21 steps in $[-4,\ 1]$;
+        $a$: 21 steps in $[-3.5,\ -0.5]$;
+        $p$: 16 steps in $[0.5,\ 2.0]$;
+        $c$: 16 log-spaced steps in $[10^{-4},\ 10^{-1}]$.
+        Total grid: $21 \times 21 \times 16 \times 16 = 112{,}896$ points.
+        \texttt{fitMSProductivity = true} fits the mainshock productivity
+        parameter $a_\text{ms}$ separately from the sequence $a$.
+
+    \item[\textbf{Monte Carlo simulation}:]
+        $N_\text{sims} = 1{,}000$, maximum 10 generations,
+        $M_\text{max} = 9.5$, \texttt{seed = 12345}.
+
+    \item[\textbf{Spatial kernel}:]
+        $0.05°$ grid spacing, length scale = 5.0, stress drop = 3.0~MPa,
+        \texttt{fitType = "aftershocks"} (inferred line-source geometry
+        from aftershock distribution). Each simulated event is assigned a
+        location sampled from the isotropic ETAS spatial kernel
+        $S(r) \propto (d^2 + r^2)^{-1}$ using exact analytical CDF inversion.
+\end{description}
+
 \textbf{Script}: \texttt{scripts/python/visualize\_nz\_etas\_with\_pycsep.py}
 
-\textbf{What the script does, in order}:
+\subsection{What the evaluation script does}
+
+\textbf{Steps, in order}:
 \begin{enumerate}
     \item Reads the ETAS summary file (\texttt{nz\_etas\_simulations.txt}) and
           config (\texttt{etas\_config.json}) to extract the event ID, forecast
@@ -51,7 +110,8 @@ NZ ETAS forecast for the 2016 M7.82 Kaik\={o}ura earthquake sequence
     \item Fetches the mainshock origin time from GeoNet FDSN and caches it.
     \item Loads all \texttt{sim\_*.txt} files from \texttt{simulated\_catalogs/}.
           Filters each catalog to $M \geq M_c = 3.0$, then maps events into
-          the official \textbf{pyCSEP NZ testing region}
+          the official
+\newline \textbf{pyCSEP NZ testing region}
           (\texttt{regions.nz\_csep\_region()}) using \texttt{filter\_spatial}.
     \item Queries GeoNet for the observed catalog over the same window and
           spatial region, caches it.
@@ -75,7 +135,8 @@ NZ ETAS forecast for the 2016 M7.82 Kaik\={o}ura earthquake sequence
     \item Median indirect ($\text{Generation} \geq 2$) share: \textbf{32.6\%}.
     \item Observed GeoNet catalog: \textbf{$N_\text{obs} = 323$} events
           ($M_w \geq 3.0$, max $M_w = 5.81$,
-          20--27 November 2016).
+          \texttt{2016-11-20T11:02:56Z} to \texttt{2016-11-27T11:02:56Z} ---
+          the forecast window only, not the 0--7~day calibration period).
     \item Representative catalog: \texttt{sim\_0102} (334 events --- closest
           to the ensemble median, selected by
           \texttt{representative\_catalog()} which minimises
@@ -121,7 +182,7 @@ than 95\% of simulations --- a borderline or failing result.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=\textwidth]{../build/pycsep/nz_etas_pycsep_evaluation_distributions.png}
+    \includegraphics[width=\textwidth]{OAF_figures/nz_etas_pycsep_evaluation_distributions.png}
     \caption{pyCSEP catalog-based evaluation distributions (1000 simulations,
              $M_w \geq 3.0$, Days 7.0--14.0). Each panel plots the
              distribution of a test statistic across the 1000 simulated
@@ -137,6 +198,7 @@ than 95\% of simulations --- a borderline or failing result.
 \subsection{Number Test (N-test) --- top left}
 
 \textbf{What the script computes}:
+\newline
 \texttt{catalog\_evaluations.number\_test(forecast, observed\_catalog)}.
 The statistic is simply $N_\text{obs} = 323$. The test distribution is the
 empirical distribution of the 1000 simulated catalog sizes (post NZ-region
@@ -154,6 +216,7 @@ meaning GeoNet recorded slightly fewer events than the typical simulation.
 \subsection{Magnitude Test (M-test) --- top centre}
 
 \textbf{What the script computes}:
+\newline
 \texttt{catalog\_evaluations.magnitude\_test(forecast, observed\_catalog)}.
 Sums all simulated catalogs over spatial cells to get a magnitude-only
 union distribution, then computes the joint log-likelihood of the observed
@@ -171,6 +234,7 @@ The $b = 1$ GR magnitude distribution is well-calibrated.
 \subsection{Spatial Test (S-test) --- top right}
 
 \textbf{What the script computes}:
+\newline
 \texttt{catalog\_evaluations.spatial\_test(forecast, observed\_catalog)}.
 Sums over magnitude bins to get a spatial-only distribution. Computes the
 mean log-likelihood of observed event locations under the forecast's spatial
@@ -254,10 +318,13 @@ how tightly the GR law constrains magnitude statistics across all simulations.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{../build/pycsep/nz_etas_pycsep_rolling_number_consistency.png}
+    \includegraphics[width=0.85\textwidth]{OAF_figures/nz_etas_pycsep_rolling_number_consistency.png}
     \caption{Rolling N-test consistency across the seven consecutive 1-day
-             sub-windows (Days 7.0--8.0, 8.0--9.0, \ldots, 13.0--14.0).
-             Produced by \texttt{run\_rolling\_number\_tests()} which builds a
+             sub-windows of the forecast period (Days 7.0--8.0, 8.0--9.0,
+             \ldots, 13.0--14.0 post-mainshock; i.e.\ 20--27 November 2016
+             UTC). All times are relative to the mainshock origin
+             \texttt{2016-11-13T11:02:56Z}. Produced by
+             \texttt{run\_rolling\_number\_tests()} which builds a
              \texttt{CatalogForecast} and an observed sub-catalog for each
              window, calls \texttt{catalog\_evaluations.number\_test}, and
              plots the result with \texttt{plots.plot\_number\_test}.
@@ -272,8 +339,10 @@ how tightly the GR law constrains magnitude statistics across all simulations.
 
 \textbf{What the script computes}: For each of the 7 daily sub-windows, the
 script slices both the forecast catalogs and the observed catalog to that
-window using \texttt{filter\_catalog\_absolute\_window}, then calls
-\texttt{catalog\_evaluations.number\_test}. A rolling calibration test
+window using 
+\newline
+\texttt{filter\_catalog\_absolute\_window}, then calls
+\texttt{catalog\_evaluations.number\_test}. A rolling calibration test 
 (\texttt{catalog\_evaluations.calibration\_test}) is then run across all 7
 results to test whether the sub-window p-values are uniformly distributed
 (KS statistic = 0.160, $p = 0.980$ --- consistent with uniform, meaning
@@ -289,7 +358,7 @@ well-calibrated not just in aggregate but day by day. The broad CI
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{../build/pycsep/nz_etas_pycsep_expected_rates.png}
+    \includegraphics[width=0.85\textwidth]{OAF_figures/nz_etas_pycsep_expected_rates.png}
     \caption{Expected $M \geq 3.0$ rate map averaged over 1000 simulations,
              expressed as $\log_{10}$ events per NZ pyCSEP grid cell per
              0.019 years (the 7-day window). Produced by
@@ -324,7 +393,7 @@ segments; the isotropic kernel cannot capture that irregular geometry.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{../build/pycsep/nz_etas_pycsep_histogram.png}
+    \includegraphics[width=0.85\textwidth]{OAF_figures/nz_etas_pycsep_histogram.png}
     \caption{Magnitude histogram comparing the GeoNet observed catalog
              (blue dots, $N_\text{obs} = 323$) against the ETAS ensemble
              forecast (red dots = mean; red bars = 95\% CI). Produced by
@@ -360,19 +429,21 @@ Key observations:
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.85\textwidth]{../build/pycsep/nz_etas_pycsep_cumulative.png}
+    \includegraphics[width=0.85\textwidth]{OAF_figures/nz_etas_pycsep_cumulative.png}
     \caption{Cumulative $M \geq 3.0$ event counts over the 7-day forecast
-             window, plotted on a 0--7 day axis relative to forecast start.
-             Produced by
+             window (Days 7--14 post-mainshock; absolute dates
+             2016-11-20 to 2016-11-27 UTC). The x-axis is 0--7 days
+             \emph{relative to forecast start} (i.e.\ day~7 absolute),
+             not relative to the mainshock. Produced by
              \texttt{plots.plot\_cumulative\_events\_versus\_time(forecast,
              observed\_catalog, time\_axis="days")}.
              The black line is the GeoNet observed catalog
-             ($N_\text{obs} = 323$ at day 7). The dark blue band is the
-             ensemble 25th--75th percentile (IQR); the light blue band is
-             the 5th--95th percentile. The ensemble median is 334. The
-             observation tracks near the 40th--60th percentile throughout
-             the window, consistent with $\delta_1 = 0.594$,
-             $\delta_2 = 0.411$.}
+             ($N_\text{obs} = 323$ at the end of the window). The dark
+             blue band is the ensemble 25th--75th percentile (IQR); the
+             light blue band is the 5th--95th percentile. The ensemble
+             median is 334. The observation tracks near the 40th--60th
+             percentile throughout the window, consistent with
+             $\delta_1 = 0.594$, $\delta_2 = 0.411$.}
     \label{fig:cumulative}
 \end{figure}
 
