@@ -34,7 +34,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.30421652,-42.81897110680242,0.0</coordinates>
+			<coordinates>173.35572555256982,-42.78469267,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -43,7 +43,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>174.55421652,-41.81359688269516,0.0</coordinates>
+			<coordinates>174.5963967870294,-41.73469267,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -78,7 +78,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.50421652,-42.52971267615794,0.0</coordinates>
+			<coordinates>173.70421652,-42.46821909300297,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -87,7 +87,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>174.47135683138526,-41.73469267,0.0</coordinates>
+			<coordinates>174.35421652,-41.596657582836215,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -122,7 +122,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.4295377241397,-42.48469267,0.0</coordinates>
+			<coordinates>173.75421652,-42.45617341508329,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -131,7 +131,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.94254196742997,-42.03469267,0.0</coordinates>
+			<coordinates>173.80421652,-41.98628388482968,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -174,7 +174,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>174.20421652,-41.884587466909466,0.0</coordinates>
+			<coordinates>174.35421652,-41.80941035845527,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -183,16 +183,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>174.40421652,-41.75101751443929,0.0</coordinates>
-		</Point>
-	</Placemark>
-	<Placemark>
-		<name>0.5 events</name>
-		<styleUrl>#sn_noicon</styleUrl>
-		<Point>
-			<altitudeMode>clampToSeaFloor</altitudeMode>
-			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>174.15421652,-41.666349834551745,0.0</coordinates>
+			<coordinates>174.30421652,-41.63720547459944,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -227,7 +218,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.10421652,-42.608494863276405,0.0</coordinates>
+			<coordinates>173.15421652,-42.59502576398036,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -236,16 +227,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.27665993858193,-42.48469267,0.0</coordinates>
-		</Point>
-	</Placemark>
-	<Placemark>
-		<name>0.7 events</name>
-		<styleUrl>#sn_noicon</styleUrl>
-		<Point>
-			<altitudeMode>clampToSeaFloor</altitudeMode>
-			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.10290413025436,-42.43469267,0.0</coordinates>
+			<coordinates>173.25421652,-42.476756822140146,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -288,7 +270,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.70421652,-42.35117846361738,0.0</coordinates>
+			<coordinates>173.75421652,-42.35459819628163,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -297,16 +279,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.79379674596132,-42.23469267,0.0</coordinates>
-		</Point>
-	</Placemark>
-	<Placemark>
-		<name>0.7 events</name>
-		<styleUrl>#sn_noicon</styleUrl>
-		<Point>
-			<altitudeMode>clampToSeaFloor</altitudeMode>
-			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.55421652,-42.15715679260958,0.0</coordinates>
+			<coordinates>173.75421652,-42.18507012496092,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -332,7 +305,16 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.75421652,-42.01611097325029,0.0</coordinates>
+			<coordinates>173.75421652,-42.048328933420656,0.0</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark>
+		<name>0.7 events</name>
+		<styleUrl>#sn_noicon</styleUrl>
+		<Point>
+			<altitudeMode>clampToSeaFloor</altitudeMode>
+			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
+			<coordinates>173.70421652,-41.97717974225682,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -358,7 +340,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>174.34048309667415,-41.78469267,0.0</coordinates>
+			<coordinates>174.35421652,-41.75161367109187,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -367,7 +349,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>174.25421652,-41.645357372271675,0.0</coordinates>
+			<coordinates>174.20421652,-41.65980971404906,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -437,7 +419,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.60421652,-42.30823142703527,0.0</coordinates>
+			<coordinates>173.70421652,-42.315412586154785,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -446,16 +428,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.76819318348598,-42.23469267,0.0</coordinates>
-		</Point>
-	</Placemark>
-	<Placemark>
-		<name>0.9 events</name>
-		<styleUrl>#sn_noicon</styleUrl>
-		<Point>
-			<altitudeMode>clampToSeaFloor</altitudeMode>
-			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.60421652,-42.15578121097261,0.0</coordinates>
+			<coordinates>173.70421652,-42.19131209260518,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -481,7 +454,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>174.25421652,-41.83186972212877,0.0</coordinates>
+			<coordinates>174.30421652,-41.79660001520245,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -490,16 +463,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>174.33279895094213,-41.68469267,0.0</coordinates>
-		</Point>
-	</Placemark>
-	<Placemark>
-		<name>0.9 events</name>
-		<styleUrl>#sn_noicon</styleUrl>
-		<Point>
-			<altitudeMode>clampToSeaFloor</altitudeMode>
-			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>174.1936016454567,-41.68469267,0.0</coordinates>
+			<coordinates>174.30421652,-41.668390147224244,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -551,7 +515,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.7406438451102,-42.23469267,0.0</coordinates>
+			<coordinates>173.69949954543475,-42.28469267,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -560,7 +524,7 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.59273234121025,-42.23469267,0.0</coordinates>
+			<coordinates>173.65421652,-42.19904386221917,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>
@@ -639,7 +603,16 @@
 		<Point>
 			<altitudeMode>clampToSeaFloor</altitudeMode>
 			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
-			<coordinates>173.70421652,-42.242326569749636,0.0</coordinates>
+			<coordinates>173.67747517948672,-42.28469267,0.0</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark>
+		<name>1.3 events</name>
+		<styleUrl>#sn_noicon</styleUrl>
+		<Point>
+			<altitudeMode>clampToSeaFloor</altitudeMode>
+			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
+			<coordinates>173.65421652,-42.222517201013524,0.0</coordinates>
 		</Point>
 	</Placemark>
 	<Placemark>

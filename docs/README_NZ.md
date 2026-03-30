@@ -276,6 +276,97 @@ Time Mag Gen Lat Lon
 
 `Generation` indicates how many steps removed from the mainshock: `1` = direct aftershock, `2` = aftershock of an aftershock, etc. Each event's lat/lon is sampled from the spatial kernel centred on its **parent event**, so spatial clustering propagates through the aftershock tree.
 
+### Step 7 — Render an ensemble diagnostic dashboard
+
+For a compact, research-grade view of the forecast ensemble, render the simulated catalogs into a single statistical dashboard:
+
+```bash
+python3 scripts/python/visualize_nz_etas_output.py
+```
+
+By default this reads:
+
+* `nz_etas_simulations.txt`
+* `simulated_catalogs/sim_*.txt`
+* `spatial_rate_map.csv` (when present)
+
+and writes:
+
+* `build/nz_visualization/nz_etas_dashboard.png`
+* `build/nz_visualization/nz_etas_dashboard.pdf`
+* `build/nz_visualization/nz_etas_dashboard_summary.md`
+
+The dashboard is designed to answer the questions a statistical seismologist usually asks first:
+
+* How quickly does the ensemble rate decay through the forecast window?
+* What is the empirical 5th/50th/95th count range for each magnitude threshold?
+* How often does the ensemble produce an event at or above a given magnitude?
+* How much of the forecast is direct triggering versus higher-generation cascade growth?
+* Where do the deterministic rate field and realized Monte Carlo event density agree spatially?
+
+It uses the **simulated catalogs themselves** as the primary source for uncertainty bands and exceedance curves. That is generally more informative than a single expected-count column because ETAS branching produces strongly overdispersed count distributions.
+
+### Step 8 — Use pyCSEP on the ETAS ensemble
+
+If you want to inspect the same ETAS catalogs with the `pyCSEP` toolkit, clone and install it from source:
+
+```bash
+git clone https://github.com/SCECcode/pycsep.git vendor/pycsep
+python3 -m pip install --user -e vendor/pycsep
+```
+
+Run a quick package smoke test:
+
+```bash
+MPLCONFIGDIR=/tmp/matplotlib python3 -m pytest -q vendor/pycsep/tests/test_catalog.py
+```
+
+Then render pyCSEP-based plots from the NZ ETAS output:
+
+```bash
+python3 scripts/python/visualize_nz_etas_with_pycsep.py
+```
+
+By default the script:
+
+* resolves the mainshock origin time from the GeoNet FDSN event service and caches it
+* downloads the matching GeoNet observed catalog for the ETAS forecast window and `Mc`
+* converts the ETAS `sim_*.txt` files into `CSEPCatalog` objects and builds a `CatalogForecast`
+* runs pyCSEP catalog-based tests plus ETAS-specific diagnostics
+
+This writes:
+
+* `build/pycsep/nz_etas_pycsep_cumulative.png`
+* `build/pycsep/nz_etas_pycsep_histogram.png`
+* `build/pycsep/nz_etas_pycsep_magnitude_time.png`
+* `build/pycsep/nz_etas_pycsep_expected_rates.png`
+* `build/pycsep/nz_etas_pycsep_observed_catalog.png`
+* `build/pycsep/nz_etas_pycsep_spatial_residuals.png`
+* `build/pycsep/nz_etas_pycsep_skill_diagrams.png`
+* `build/pycsep/nz_etas_pycsep_evaluation_distributions.png`
+* `build/pycsep/nz_etas_pycsep_benchmark_comparison.png`
+* `build/pycsep/nz_etas_pycsep_generation_cumulative.png`
+* `build/pycsep/nz_etas_pycsep_max_magnitude_exceedance.png`
+* `build/pycsep/nz_etas_pycsep_rolling_number_consistency.png`
+* `build/pycsep/nz_etas_pycsep_rolling_calibration.png`
+* `build/pycsep/evaluation_json/*.json`
+* `build/pycsep/nz_etas_pycsep_summary.md`
+
+The observation-backed workflow now runs:
+
+* catalog `number`, `magnitude`, `spatial`, `pseudolikelihood`, resampled-magnitude, and MLL-magnitude tests
+* ETAS versus a uniform-space benchmark with pyCSEP comparison plots
+* concentration ROC, ROC, and Molchan diagrams
+* spatial residual maps, generation-resolved cumulative curves, maximum-magnitude exceedance curves, and rolling-window number-test diagnostics
+
+When GeoNet observations are available, the cumulative and histogram plots use the **observed GeoNet catalog** as the comparison catalog. If you want forecast-only diagnostics or you are offline, use:
+
+```bash
+python3 scripts/python/visualize_nz_etas_with_pycsep.py \
+  --skip-observed \
+  --reference-time 2016-11-13T11:02:56+00:00
+```
+
 ---
 
 ## 4. Configuration (`etas_config.json`)
