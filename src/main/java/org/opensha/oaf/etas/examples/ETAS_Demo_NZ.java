@@ -270,13 +270,21 @@ public class ETAS_Demo_NZ {
                 "\nForecast (Days " + config.forecastWindow.minDays + "-" + config.forecastWindow.maxDays + "):");
         for (int i = 0; i < forecastMags.length; i++) {
             forecastRates[i] = rateMc * Math.pow(10, -bVal * (forecastMags[i] - Mc));
-            forecastProbs[i] = 1.0 - Math.exp(-forecastRates[i]);
             System.out.println("M>=" + forecastMags[i] + ": " + df.format(forecastRates[i]));
         }
 
-        // --- Probability ---
+        // --- Probability — counted directly from simulation outcomes (not Poisson approx) ---
         System.out.println("\nProbability of >=1 event:");
         for (int i = 0; i < forecastMags.length; i++) {
+            org.opensha.commons.data.function.ArbDiscrEmpiricalDistFunc dist =
+                    seqModel.computeNum_DistributionFunc(
+                            config.forecastWindow.minDays, config.forecastWindow.maxDays, forecastMags[i]);
+            int simsWithAtLeastOne = 0;
+            for (int j = 0; j < dist.size(); j++) {
+                if (dist.getX(j) >= 1)
+                    simsWithAtLeastOne += (int) Math.round(dist.getY(j) * config.simulation.nSims);
+            }
+            forecastProbs[i] = (double) simsWithAtLeastOne / config.simulation.nSims;
             System.out.println("M>=" + forecastMags[i] + ": " + df.format(forecastProbs[i] * 100) + "%");
         }
 

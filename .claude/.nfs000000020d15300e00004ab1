@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew compileJava)",
+      "Bash(ln -s /home/kennyg/projects/ETASModels/opensha /home/kennyg/projects/ETASModels/opensha-oaf/opensha_local)",
+      "Bash(find src:*)",
+      "Bash(./gradlew appNZDemoJar)",
+      "Bash(ls -lh /home/kennyg/projects/ETASModels/opensha-oaf/build/libs/ETAS_Demo_NZ*.jar)",
+      "Bash(chmod +x /home/kennyg/projects/ETASModels/opensha-oaf/run_nz_demo.sh)"
+    ]
+  }
+}

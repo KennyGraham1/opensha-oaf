@@ -377,7 +377,7 @@ public abstract class ETAS_AftershockModel {
 
 		double minMag;
 		if (dynamicMinMag) {
-			minMag = maxASmag - 1.0;
+			minMag = magComplete;  // start calibration from Mc, not maxASmag-1
 
 			// calibrate minimum magnitude choice by running 100 sims. If any come back with
 			// zero events, reduce minMag
@@ -591,23 +591,28 @@ public abstract class ETAS_AftershockModel {
 			// b*(refMag - magComplete));
 			productivity[i] = Math.pow(10, a + alpha * (magAftershocks[i] - magComplete)); // update 4/2/18
 
-			// compute number at end of window due to this aftershock
+			// compute number in the forecast window [tMinDays, tMaxDays] due to this aftershock.
+			// The lower integration bound is max(0, tMinDays - t_i) so we only count
+			// offspring that fall inside the forecast window, not the full tail from t_i.
 			if (relativeTimeAftershocks[i] <= tMaxDays) {
+				double tLow = Math.max(0.0, tMinDays - relativeTimeAftershocks[i]);
 				if (timeDependentMc) {
 					cms = c * Math.pow(kc * productivity[i], 1d / p);
 					if (Math.abs(1 - p) < 1e-6) {
-						timeIntegral = Math.log(tMaxDays - relativeTimeAftershocks[i] + cms) - Math.log(cms);
+						timeIntegral = Math.log(tMaxDays - relativeTimeAftershocks[i] + cms)
+								- Math.log(tLow + cms);
 					} else {
 						timeIntegral = (Math.pow(tMaxDays - relativeTimeAftershocks[i] + cms, 1d - p)
-								- Math.pow(cms, 1d - p)) / (1d - p);
+								- Math.pow(tLow + cms, 1d - p)) / (1d - p);
 					}
 					Ntot += productivity[i] * timeIntegral; // aftershock Contributions
 				} else {
 					if (Math.abs(1 - p) < 1e-6)
-						timeIntegral = Math.log(tMaxDays - relativeTimeAftershocks[i] + c) - Math.log(c);
+						timeIntegral = Math.log(tMaxDays - relativeTimeAftershocks[i] + c)
+								- Math.log(tLow + c);
 					else
 						timeIntegral = (Math.pow(tMaxDays - relativeTimeAftershocks[i] + c, 1d - p)
-								- Math.pow(c, 1d - p)) / (1d - p);
+								- Math.pow(tLow + c, 1d - p)) / (1d - p);
 
 					Ntot += productivity[i] * timeIntegral; // aftershock Contributions
 				}
