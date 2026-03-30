@@ -355,7 +355,7 @@ This writes:
 The observation-backed workflow now runs:
 
 * catalog `number`, `magnitude`, `spatial`, `pseudolikelihood`, resampled-magnitude, and MLL-magnitude tests
-* ETAS versus a uniform-space benchmark with pyCSEP comparison plots
+* ETAS versus a uniform-space benchmark with pyCSEP comparison plots when all observed events fall inside non-zero ETAS support
 * concentration ROC, ROC, and Molchan diagrams
 * spatial residual maps, generation-resolved cumulative curves, maximum-magnitude exceedance curves, and rolling-window number-test diagnostics
 

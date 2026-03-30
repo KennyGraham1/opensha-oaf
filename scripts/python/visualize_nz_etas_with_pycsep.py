@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import math
 import os
@@ -86,6 +88,16 @@ class CatalogBuildStats:
     raw_count: int
     kept_magnitude_count: int
     kept_spatial_count: int
+
+
+@dataclass
+class CatalogTestDiagnostics:
+    observed_event_count: int
+    observed_events_in_zero_spatial_rate_cells: int
+    observed_nonzero_spatial_cells_with_zero_rate: int
+    observed_events_in_zero_space_magnitude_bins: int
+    total_spatial_cells: int
+    zero_spatial_rate_cells: int
 
 
 @dataclass
@@ -556,6 +568,13 @@ def save_axis(ax: plt.Axes, path: Path) -> None:
     save_figure(ax.figure, path)
 
 
+def remove_if_exists(path: Path) -> None:
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        pass
+
+
 def build_uniform_benchmark(expected_rates: GriddedForecast) -> GriddedForecast:
     benchmark_data = np.zeros_like(expected_rates.data)
     magnitude_totals = expected_rates.magnitude_counts()
@@ -570,6 +589,65 @@ def build_uniform_benchmark(expected_rates: GriddedForecast) -> GriddedForecast:
         magnitudes=expected_rates.magnitudes,
         name="Uniform-space benchmark",
     )
+
+
+def compute_catalog_test_diagnostics(
+    expected_rates: GriddedForecast,
+    observed_catalog: CSEPCatalog,
+) -> CatalogTestDiagnostics:
+    expected_spatial = expected_rates.spatial_counts()
+    observed_spatial = observed_catalog.spatial_counts()
+    zero_spatial_rate_mask = expected_spatial <= 0.0
+    observed_in_zero_spatial_cells = (observed_spatial > 0) & zero_spatial_rate_mask
+    target_rates, _ = expected_rates.target_event_rates(observed_catalog)
+    return CatalogTestDiagnostics(
+        observed_event_count=int(observed_catalog.event_count),
+        observed_events_in_zero_spatial_rate_cells=int(np.sum(observed_spatial[observed_in_zero_spatial_cells])),
+        observed_nonzero_spatial_cells_with_zero_rate=int(np.count_nonzero(observed_in_zero_spatial_cells)),
+        observed_events_in_zero_space_magnitude_bins=int(np.count_nonzero(target_rates <= 0.0)),
+        total_spatial_cells=int(expected_spatial.size),
+        zero_spatial_rate_cells=int(np.count_nonzero(zero_spatial_rate_mask)),
+    )
+
+
+def _run_catalog_test_with_captured_stdout(callback):
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        result = callback()
+    return result, buffer.getvalue().strip()
+
+
+def run_catalog_based_consistency_tests(
+    forecast: CatalogForecast,
+    observed_catalog: CSEPCatalog,
+) -> tuple[dict[str, object], list[str]]:
+    results: dict[str, object] = {}
+    messages: list[str] = []
+
+    results["catalog_number_test"] = catalog_evaluations.number_test(forecast, observed_catalog, verbose=False)
+    results["catalog_magnitude_test"] = catalog_evaluations.magnitude_test(forecast, observed_catalog, verbose=False)
+
+    spatial_result, spatial_stdout = _run_catalog_test_with_captured_stdout(
+        lambda: catalog_evaluations.spatial_test(forecast, observed_catalog, verbose=False)
+    )
+    results["catalog_spatial_test"] = spatial_result
+    if spatial_stdout:
+        messages.append(spatial_stdout)
+
+    pseudolikelihood_result, pseudolikelihood_stdout = _run_catalog_test_with_captured_stdout(
+        lambda: catalog_evaluations.pseudolikelihood_test(forecast, observed_catalog, verbose=False)
+    )
+    results["catalog_pseudolikelihood_test"] = pseudolikelihood_result
+    if pseudolikelihood_stdout and pseudolikelihood_stdout != spatial_stdout:
+        messages.append(pseudolikelihood_stdout)
+
+    results["catalog_resampled_magnitude_test"] = catalog_evaluations.resampled_magnitude_test(
+        forecast, observed_catalog, verbose=False, seed=12345
+    )
+    results["catalog_mll_magnitude_test"] = catalog_evaluations.MLL_magnitude_test(
+        forecast, observed_catalog, verbose=False, seed=12345
+    )
+    return results, messages
 
 
 def compute_indirect_fraction_percent(catalog_arrays: list[CatalogArrays]) -> np.ndarray:
@@ -764,6 +842,8 @@ def write_summary(
     stats: list[CatalogBuildStats],
     observed_catalog: Optional[CSEPCatalog],
     observed_path: Optional[Path],
+    catalog_test_diagnostics: Optional[CatalogTestDiagnostics],
+    catalog_test_messages: list[str],
     evaluation_results: dict[str, object],
     rolling_results: list,
     calibration_result: Optional[object],
@@ -832,6 +912,17 @@ def write_summary(
                 "",
             ]
         )
+        if catalog_test_diagnostics is not None:
+            lines.extend(
+                [
+                    "## Catalog-Test Diagnostics",
+                    "",
+                    f"- Observed events in zero ETAS spatial-rate cells: `{catalog_test_diagnostics.observed_events_in_zero_spatial_rate_cells}` across `{catalog_test_diagnostics.observed_nonzero_spatial_cells_with_zero_rate}` spatial cells",
+                    f"- Observed events in zero ETAS space-magnitude bins: `{catalog_test_diagnostics.observed_events_in_zero_space_magnitude_bins}`",
+                    f"- Zero-rate ETAS spatial cells in testing region: `{catalog_test_diagnostics.zero_spatial_rate_cells}` of `{catalog_test_diagnostics.total_spatial_cells}`",
+                    "",
+                ]
+            )
 
     if evaluation_results:
         lines.extend(["## Evaluation Results", ""])
@@ -869,9 +960,17 @@ def write_summary(
             "",
             "- The cumulative and histogram plots use GeoNet observations when available; otherwise they fall back to a representative simulation.",
             "- The rolling-window calibration test is a within-forecast diagnostic built from daily sub-window number tests inside the current ETAS horizon.",
-            "- The benchmark comparison uses a uniform-in-space forecast that preserves the ETAS expected magnitude totals.",
         ]
     )
+    if "paired_t_test_vs_uniform" in evaluation_results or "w_test_vs_uniform" in evaluation_results:
+        lines.append("- The benchmark comparison uses a uniform-in-space forecast that preserves the ETAS expected magnitude totals.")
+    if catalog_test_messages:
+        lines.append("- pyCSEP emitted undersampling notices for the spatial/pseudolikelihood tests; these were captured and summarized here instead of relying on raw stdout.")
+    if catalog_test_diagnostics is not None and catalog_test_diagnostics.observed_events_in_zero_spatial_rate_cells > 0:
+        lines.append("- In pyCSEP, `status=undersampled` for the spatial and pseudolikelihood tests means observed events occurred in cells where the forecast had zero spatial support, so those events were removed before recomputing the score.")
+    if catalog_test_diagnostics is not None and catalog_test_diagnostics.observed_events_in_zero_space_magnitude_bins > 0:
+        lines.append("- The Poisson paired T/W comparison tests were skipped because pyCSEP comparison scores require positive target rates for all observed events, which is not true here.")
+    lines.append("- The catalog number test uses the empirical distribution of synthetic catalog sizes; the catalog magnitude tests compare the observed magnitude histogram against the union of all synthetic catalogs scaled to the observed event count.")
     if any(
         isinstance(getattr(result, "observed_statistic", None), (float, np.floating))
         and math.isinf(float(getattr(result, "observed_statistic")))
@@ -971,6 +1070,10 @@ def main() -> int:
     summary_path = output_dir / "nz_etas_pycsep_summary.md"
     json_dir = output_dir / "evaluation_json"
     json_dir.mkdir(parents=True, exist_ok=True)
+    comparison_json_paths = [
+        json_dir / "paired_t_test_vs_uniform.json",
+        json_dir / "w_test_vs_uniform.json",
+    ]
 
     comparison_catalog = observed_catalog if observed_catalog is not None else representative
     comparison_label = comparison_catalog.name
@@ -1017,6 +1120,8 @@ def main() -> int:
     evaluation_results: dict[str, object] = {}
     rolling_results = []
     calibration_result = None
+    catalog_test_diagnostics = None
+    catalog_test_messages: list[str] = []
     output_files = [
         cumulative_path,
         histogram_path,
@@ -1046,18 +1151,27 @@ def main() -> int:
         plot_spatial_residuals(residual_path, expected_rates, observed_catalog)
         output_files.append(residual_path)
 
-        evaluation_results["catalog_number_test"] = catalog_evaluations.number_test(forecast, observed_catalog, verbose=False)
-        evaluation_results["catalog_magnitude_test"] = catalog_evaluations.magnitude_test(forecast, observed_catalog, verbose=False)
-        evaluation_results["catalog_spatial_test"] = catalog_evaluations.spatial_test(forecast, observed_catalog, verbose=False)
-        evaluation_results["catalog_pseudolikelihood_test"] = catalog_evaluations.pseudolikelihood_test(
-            forecast, observed_catalog, verbose=False
+        catalog_test_diagnostics = compute_catalog_test_diagnostics(expected_rates, observed_catalog)
+        if catalog_test_diagnostics.observed_events_in_zero_spatial_rate_cells > 0:
+            print(
+                "Catalog-test diagnostic: "
+                f"{catalog_test_diagnostics.observed_events_in_zero_spatial_rate_cells}/"
+                f"{catalog_test_diagnostics.observed_event_count} observed events fall in zero ETAS spatial-rate cells."
+            )
+        if catalog_test_diagnostics.observed_events_in_zero_space_magnitude_bins > 0:
+            print(
+                "Catalog-test diagnostic: "
+                f"{catalog_test_diagnostics.observed_events_in_zero_space_magnitude_bins}/"
+                f"{catalog_test_diagnostics.observed_event_count} observed events fall in zero ETAS space-magnitude bins."
+            )
+
+        evaluation_results, catalog_test_messages = run_catalog_based_consistency_tests(
+            forecast, observed_catalog
         )
-        evaluation_results["catalog_resampled_magnitude_test"] = catalog_evaluations.resampled_magnitude_test(
-            forecast, observed_catalog, verbose=False, seed=12345
-        )
-        evaluation_results["catalog_mll_magnitude_test"] = catalog_evaluations.MLL_magnitude_test(
-            forecast, observed_catalog, verbose=False, seed=12345
-        )
+        if catalog_test_messages:
+            print(
+                "pyCSEP catalog spatial tests marked the forecast as undersampled and recomputed the score after excluding unsupported observed events."
+            )
 
         for key, result in evaluation_results.items():
             if result is not None:
@@ -1094,23 +1208,48 @@ def main() -> int:
         save_figure(fig, evaluation_path)
         output_files.append(evaluation_path)
 
-        benchmark = build_uniform_benchmark(expected_rates)
-        t_result = poisson_evaluations.paired_t_test(expected_rates, benchmark, observed_catalog)
-        w_result = poisson_evaluations.w_test(expected_rates, benchmark, observed_catalog)
-        evaluation_results["paired_t_test_vs_uniform"] = t_result
-        evaluation_results["w_test_vs_uniform"] = w_result
-        write_json(t_result, str(json_dir / "paired_t_test_vs_uniform.json"))
-        write_json(w_result, str(json_dir / "w_test_vs_uniform.json"))
-        output_files.extend([json_dir / "paired_t_test_vs_uniform.json", json_dir / "w_test_vs_uniform.json"])
+        per_test_plot_specs = [
+            ("catalog_number_test", output_dir / "nz_etas_pycsep_catalog_number_test.png", "Catalog N-Test"),
+            ("catalog_magnitude_test", output_dir / "nz_etas_pycsep_catalog_magnitude_test.png", "Catalog M-Test"),
+            ("catalog_spatial_test", output_dir / "nz_etas_pycsep_catalog_spatial_test.png", "Catalog S-Test"),
+            ("catalog_pseudolikelihood_test", output_dir / "nz_etas_pycsep_catalog_pseudolikelihood_test.png", "Catalog PL-Test"),
+            ("catalog_resampled_magnitude_test", output_dir / "nz_etas_pycsep_catalog_resampled_magnitude_test.png", "Catalog Resampled M-Test"),
+            ("catalog_mll_magnitude_test", output_dir / "nz_etas_pycsep_catalog_mll_magnitude_test.png", "Catalog MLL M-Test"),
+        ]
+        for result_key, plot_path, title in per_test_plot_specs:
+            result = evaluation_results.get(result_key)
+            if result is None:
+                continue
+            ax = result.plot(show=False)
+            ax.set_title(title)
+            save_axis(ax, plot_path)
+            output_files.append(plot_path)
 
-        ax = plots.plot_comparison_test(
-            results_t=t_result,
-            results_w=w_result,
-            show=False,
-            title="ETAS vs uniform-space benchmark",
-        )
-        save_axis(ax, comparison_path)
-        output_files.append(comparison_path)
+        if catalog_test_diagnostics.observed_events_in_zero_space_magnitude_bins == 0:
+            benchmark = build_uniform_benchmark(expected_rates)
+            t_result = poisson_evaluations.paired_t_test(expected_rates, benchmark, observed_catalog)
+            w_result = poisson_evaluations.w_test(expected_rates, benchmark, observed_catalog)
+            evaluation_results["paired_t_test_vs_uniform"] = t_result
+            evaluation_results["w_test_vs_uniform"] = w_result
+            write_json(t_result, str(json_dir / "paired_t_test_vs_uniform.json"))
+            write_json(w_result, str(json_dir / "w_test_vs_uniform.json"))
+            output_files.extend([json_dir / "paired_t_test_vs_uniform.json", json_dir / "w_test_vs_uniform.json"])
+
+            ax = plots.plot_comparison_test(
+                results_t=t_result,
+                results_w=w_result,
+                show=False,
+                title="ETAS vs uniform-space benchmark",
+            )
+            save_axis(ax, comparison_path)
+            output_files.append(comparison_path)
+        else:
+            print(
+                "Skipping pyCSEP paired T/W comparison tests because observed events fall in zero ETAS space-magnitude bins."
+            )
+            remove_if_exists(comparison_path)
+            for stale_path in comparison_json_paths:
+                remove_if_exists(stale_path)
 
         fig, axes = plt.subplots(1, 3, figsize=(18, 5.5))
         plots.plot_concentration_ROC_diagram(
@@ -1172,6 +1311,8 @@ def main() -> int:
         stats=stats,
         observed_catalog=observed_catalog,
         observed_path=observed_cache_path if observed_catalog is not None else None,
+        catalog_test_diagnostics=catalog_test_diagnostics,
+        catalog_test_messages=catalog_test_messages,
         evaluation_results=evaluation_results,
         rolling_results=rolling_results,
         calibration_result=calibration_result,

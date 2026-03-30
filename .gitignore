@@ -1,7 +1,11 @@
 # Gradle
 .gradle/
-build/
 out/
+
+# Build outputs — exclude most of build/ but keep pyCSEP evaluation outputs
+build/
+!build/pycsep/
+!build/pycsep/**
 
 # Java
 *.class

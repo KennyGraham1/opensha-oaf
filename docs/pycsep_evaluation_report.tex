@@ -1,0 +1,460 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{parskip}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+\definecolor{passgreen}{RGB}{0,150,0}
+\definecolor{failred}{RGB}{200,0,0}
+\definecolor{warnorange}{RGB}{200,120,0}
+
+\title{pyCSEP Catalog-Based Evaluation:\\
+       NZ ETAS Forecast --- 2016 Kaik\={o}ura Sequence}
+\author{NZ ETAS Pipeline}
+\date{\today}
+
+% ────────────────────────────────────────────────────────────────────────────
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Overview and Data Provenance}
+
+This report presents a full pyCSEP (v0.8.0) catalog-based evaluation of the
+NZ ETAS forecast for the 2016 M7.82 Kaik\={o}ura earthquake sequence
+(GeoNet event \texttt{2016p858000}, mainshock UTC origin time
+\texttt{2016-11-13T11:02:56Z}).
+
+\textbf{Script}: \texttt{scripts/python/visualize\_nz\_etas\_with\_pycsep.py}
+
+\textbf{What the script does, in order}:
+\begin{enumerate}
+    \item Reads the ETAS summary file (\texttt{nz\_etas\_simulations.txt}) and
+          config (\texttt{etas\_config.json}) to extract the event ID, forecast
+          window (Days 7.0--14.0), and $M_c = 3.0$.
+    \item Fetches the mainshock origin time from GeoNet FDSN and caches it.
+    \item Loads all \texttt{sim\_*.txt} files from \texttt{simulated\_catalogs/}.
+          Filters each catalog to $M \geq M_c = 3.0$, then maps events into
+          the official \textbf{pyCSEP NZ testing region}
+          (\texttt{regions.nz\_csep\_region()}) using \texttt{filter\_spatial}.
+    \item Queries GeoNet for the observed catalog over the same window and
+          spatial region, caches it.
+    \item Builds a \texttt{CatalogForecast} from the filtered simulations and
+          a \texttt{GriddedForecast} of expected rates via
+          \texttt{forecast.get\_expected\_rates()}.
+    \item Runs six catalog-based consistency tests (N, M, S, PL, resampled M,
+          MLL) from \texttt{csep.core.catalog\_evaluations}.
+    \item Runs a rolling 1-day N-test and a calibration test across the seven
+          daily sub-windows.
+    \item Produces all figures and saves JSON results to
+          \texttt{build/pycsep/evaluation\_json/}.
+\end{enumerate}
+
+\textbf{Key run statistics} (from \texttt{nz\_etas\_pycsep\_summary.md}):
+\begin{itemize}
+    \item 1000 simulated catalogs loaded.
+    \item 3{,}551{,}889 raw event rows read; 360{,}343 kept after $M \geq 3.0$
+          filter; 348{,}320 kept after NZ pyCSEP region filter.
+    \item Ensemble event-count \textbf{median: 334} events.
+    \item Median indirect ($\text{Generation} \geq 2$) share: \textbf{32.6\%}.
+    \item Observed GeoNet catalog: \textbf{$N_\text{obs} = 323$} events
+          ($M_w \geq 3.0$, max $M_w = 5.81$,
+          20--27 November 2016).
+    \item Representative catalog: \texttt{sim\_0102} (334 events --- closest
+          to the ensemble median, selected by
+          \texttt{representative\_catalog()} which minimises
+          $|N_\text{sim} - \text{median}|$).
+\end{itemize}
+
+\textbf{Spatial region note}: The pyCSEP NZ region
+(\texttt{regions.nz\_csep\_region()}) is a fixed official testing grid.
+3{,}002 of 6{,}343 cells in the region had zero ETAS spatial rate --- the model
+assigns non-zero probability to roughly half the region. Sixteen observed
+events fell in zero-rate cells; 51 observed events fell in zero
+space--magnitude bins. This triggered \texttt{status=undersampled} for the S
+and PL tests (the score was recomputed after excluding those events).
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Key Statistics}
+
+\subsection{Delta statistics ($\delta_1$, $\delta_2$) --- N-test only}
+
+\begin{align}
+    \delta_1 &= 1 - F(N_\text{obs} - 1 \mid N_F)
+               \quad \text{probability of observing \emph{at least} $N_\text{obs}$ events} \\[4pt]
+    \delta_2 &= F(N_\text{obs} \mid N_F)
+               \quad \text{probability of observing \emph{at most} $N_\text{obs}$ events}
+\end{align}
+
+pyCSEP uses the \emph{empirical} distribution of synthetic catalog sizes (not
+a Poisson CDF) for catalog-based forecasts, so $F$ here is the empirical CDF
+of the 1000 simulation counts. Both $\delta_1$ and $\delta_2$ must exceed
+0.025 to pass at 95\% confidence.
+
+\subsection{Quantile scores for all other tests}
+
+Each test returns a two-element quantile tuple $(q_\text{lo}, q_\text{hi})$
+where $q_\text{lo} = P(\text{sim stat} \leq \omega_\text{obs})$ and
+$q_\text{hi} = 1 - q_\text{lo}$. For one-sided tests the relevant tail is
+$q_\text{lo}$: a value below 0.05 indicates the observation is less likely
+than 95\% of simulations --- a borderline or failing result.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Figure 1 --- Evaluation Distributions (Six-Panel)}
+\label{sec:eval_dist}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{../build/pycsep/nz_etas_pycsep_evaluation_distributions.png}
+    \caption{pyCSEP catalog-based evaluation distributions (1000 simulations,
+             $M_w \geq 3.0$, Days 7.0--14.0). Each panel plots the
+             distribution of a test statistic across the 1000 simulated
+             catalogs (blue histogram). The dashed vertical line is the
+             observed statistic $\omega$. Red bars are the 2.5\% tails.
+             The figure is produced by \texttt{plots.plot\_test\_distribution}
+             called once per result, then assembled into a $2 \times 3$ grid
+             by the script. Test results are drawn from
+             \texttt{csep.core.catalog\_evaluations}.}
+    \label{fig:eval}
+\end{figure}
+
+\subsection{Number Test (N-test) --- top left}
+
+\textbf{What the script computes}:
+\texttt{catalog\_evaluations.number\_test(forecast, observed\_catalog)}.
+The statistic is simply $N_\text{obs} = 323$. The test distribution is the
+empirical distribution of the 1000 simulated catalog sizes (post NZ-region
+filter), ranging from 230 to 616 with median 334.
+
+\textbf{Exact values from \texttt{catalog\_number\_test.json}}:
+\[
+    \omega = 323, \quad
+    \delta_1 = 0.594, \quad \delta_2 = 0.411, \quad \text{status: normal}
+\]
+Both exceed 0.025. The observation sits below the simulation median (334),
+meaning GeoNet recorded slightly fewer events than the typical simulation.
+\textbf{Status}: \textcolor{passgreen}{\textbf{Pass}}
+
+\subsection{Magnitude Test (M-test) --- top centre}
+
+\textbf{What the script computes}:
+\texttt{catalog\_evaluations.magnitude\_test(forecast, observed\_catalog)}.
+Sums all simulated catalogs over spatial cells to get a magnitude-only
+union distribution, then computes the joint log-likelihood of the observed
+magnitude sequence given that union.
+
+\textbf{Exact values}:
+\[
+    \omega = 0.5501, \quad
+    q_\text{lo} = 0.736, \quad q_\text{hi} = 0.264, \quad \text{status: normal}
+\]
+73.6\% of simulations scored \emph{below} (worse than) the observation.
+The $b = 1$ GR magnitude distribution is well-calibrated.
+\textbf{Status}: \textcolor{passgreen}{\textbf{Pass}}
+
+\subsection{Spatial Test (S-test) --- top right}
+
+\textbf{What the script computes}:
+\texttt{catalog\_evaluations.spatial\_test(forecast, observed\_catalog)}.
+Sums over magnitude bins to get a spatial-only distribution. Computes the
+mean log-likelihood of observed event locations under the forecast's spatial
+density. Because 16 observed events fell in zero-rate cells, pyCSEP removed
+them and recomputed (\texttt{status=undersampled}).
+
+\textbf{Exact values}:
+\[
+    \omega = -5.739, \quad
+    q_\text{lo} = 0.963, \quad q_\text{hi} = 0.037, \quad \text{status: undersampled}
+\]
+The relevant tail for this one-sided test is $q_\text{hi} = 0.037 < 0.05$.
+Only 3.7\% of simulations scored \emph{worse} spatially than the observation.
+The observed events cluster in locations the model assigns lower probability
+than expected --- the isotropic kernel misses part of the complex multi-fault
+Kaik\={o}ura rupture zone.
+\textbf{Status}: \textcolor{warnorange}{\textbf{Marginal fail ($q = 0.037$)}}
+
+\subsection{Pseudolikelihood Test (PL-test) --- bottom left}
+
+\textbf{What the script computes}:
+\texttt{catalog\_evaluations.pseudolikelihood\_test(forecast, observed\_catalog)}.
+Evaluates the joint space--magnitude pseudo-log-likelihood:
+\[
+    \hat{L}_\text{obs} = \sum_i \log \hat{\lambda}_s(k_i) - \bar{N}
+\]
+Also \texttt{status=undersampled} for the same reason as S-test.
+
+\textbf{Exact values}:
+\[
+    \omega = -313.41, \quad
+    q_\text{lo} = 0.969, \quad q_\text{hi} = 0.031, \quad \text{status: undersampled}
+\]
+$q_\text{hi} = 0.031 < 0.05$ --- also marginal. The joint
+space--magnitude likelihood is slightly low because of the same
+spatial mismatch identified by the S-test.
+\textbf{Status}: \textcolor{warnorange}{\textbf{Marginal fail ($q = 0.031$)}}
+
+\textbf{Note}: pyCSEP recommends the PL-test as the primary joint test for
+catalog-based forecasts. Both it and the S-test share the same root cause
+(the undersampled spatial cells).
+
+\subsection{Resampled Magnitude Test --- bottom centre}
+
+\textbf{What the script computes}:
+\texttt{catalog\_evaluations.resampled\_magnitude\_test(forecast,
+observed\_catalog, seed=12345)}.
+Draws exactly $N_\text{obs} = 323$ events from the union of all synthetic
+catalogs (with fixed \texttt{seed=12345} for reproducibility) to build each
+test distribution entry.
+
+\textbf{Exact values}:
+\[
+    \omega = 0.5501, \quad
+    q_\text{lo} = 0.821, \quad q_\text{hi} = 0.179, \quad \text{status: normal}
+\]
+The wider spread relative to the plain M-test reflects the additional
+sampling variance from resampling.
+\textbf{Status}: \textcolor{passgreen}{\textbf{Pass}}
+
+\subsection{MLL Magnitude Test --- bottom right}
+
+\textbf{What the script computes}:
+\texttt{catalog\_evaluations.MLL\_magnitude\_test(forecast, observed\_catalog,
+seed=12345)}.
+Applies a modified multinomial log-likelihood ratio statistic to the
+magnitude distribution.
+
+\textbf{Exact values}:
+\[
+    \omega = 163.598, \quad
+    q_\text{lo} = 0.356, \quad q_\text{hi} = 0.644, \quad \text{status: normal}
+\]
+The extremely narrow distribution (values $\approx 160$--$166$) reflects
+how tightly the GR law constrains magnitude statistics across all simulations.
+\textbf{Status}: \textcolor{passgreen}{\textbf{Pass}}
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Figure 2 --- Rolling Number-Test Consistency}
+\label{sec:rolling}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.85\textwidth]{../build/pycsep/nz_etas_pycsep_rolling_number_consistency.png}
+    \caption{Rolling N-test consistency across the seven consecutive 1-day
+             sub-windows (Days 7.0--8.0, 8.0--9.0, \ldots, 13.0--14.0).
+             Produced by \texttt{run\_rolling\_number\_tests()} which builds a
+             \texttt{CatalogForecast} and an observed sub-catalog for each
+             window, calls \texttt{catalog\_evaluations.number\_test}, and
+             plots the result with \texttt{plots.plot\_number\_test}.
+             Each row is one day. The horizontal line and shaded band are the
+             95\% CI of simulated daily counts. The dot is the simulation mean.
+             Green squares = observed count inside CI (pass);
+             red dots = outside CI (fail). All seven days pass.
+             The rolling calibration KS statistic is 0.160 with $p = 0.980$,
+             confirming the seven sub-window tests are jointly well-calibrated.}
+    \label{fig:rolling}
+\end{figure}
+
+\textbf{What the script computes}: For each of the 7 daily sub-windows, the
+script slices both the forecast catalogs and the observed catalog to that
+window using \texttt{filter\_catalog\_absolute\_window}, then calls
+\texttt{catalog\_evaluations.number\_test}. A rolling calibration test
+(\texttt{catalog\_evaluations.calibration\_test}) is then run across all 7
+results to test whether the sub-window p-values are uniformly distributed
+(KS statistic = 0.160, $p = 0.980$ --- consistent with uniform, meaning
+no systematic temporal bias).
+
+All seven daily windows show green squares. The Omori temporal decay is
+well-calibrated not just in aggregate but day by day. The broad CI
+($\sim$20--100 events/day) reflects ETAS branching overdispersion.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Figure 3 --- Spatial Expected Rate Map}
+\label{sec:spatial_map}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.85\textwidth]{../build/pycsep/nz_etas_pycsep_expected_rates.png}
+    \caption{Expected $M \geq 3.0$ rate map averaged over 1000 simulations,
+             expressed as $\log_{10}$ events per NZ pyCSEP grid cell per
+             0.019 years (the 7-day window). Produced by
+             \texttt{forecast.get\_expected\_rates()} which averages the
+             gridded counts across all 1000 \texttt{CSEPCatalog} objects
+             filtered into the NZ region, then calls \texttt{expected\_rates.plot()}.
+             The NZ pyCSEP region covers 34°S--48°S, 166°E--179°E on a
+             $0.1°\times 0.1°$ grid (6{,}343 cells). Colour scale: purple ($-3$,
+             $\sim$0.001 events/cell) to yellow ($+1$, $\sim$10 events/cell).
+             The dominant hot spot near 42°S, 173°E is the Kaik\={o}ura aftershock
+             zone; its NE--SW elongation reflects the inferred line-source geometry
+             (\texttt{fitType = "aftershocks"}).}
+    \label{fig:spatial_map}
+\end{figure}
+
+\textbf{What the script computes}: \texttt{forecast.get\_expected\_rates(verbose=False)}
+accumulates all $M \geq M_c$ events from the 1000 simulated catalogs
+(already filtered into the NZ region) into a \texttt{GriddedForecast}.
+Each cell value is the mean number of events across the ensemble. Cells
+where no simulation placed any event remain at zero --- this is what
+produces the 3{,}002 zero-rate cells noted in Section~1, and is the
+root cause of the S-test undersampling.
+
+The map directly shows why the S-test is marginal: the smooth, roughly
+elliptical high-rate zone covers only part of the actual aftershock
+distribution. The Kaik\={o}ura sequence ruptured $\geq 12$ separate fault
+segments; the isotropic kernel cannot capture that irregular geometry.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Figure 4 --- Magnitude Histogram}
+\label{sec:mag_hist}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.85\textwidth]{../build/pycsep/nz_etas_pycsep_histogram.png}
+    \caption{Magnitude histogram comparing the GeoNet observed catalog
+             (blue dots, $N_\text{obs} = 323$) against the ETAS ensemble
+             forecast (red dots = mean; red bars = 95\% CI). Produced by
+             \texttt{plots.plot\_magnitude\_histogram(forecast,
+             observed\_catalog, log\_scale=False, normalize=False)}.
+             The x-axis covers $M_w$ 3.0--9.5 in 0.1 unit bins; y-axis is
+             raw event count. The GR $b = 1$ slope is clearly reproduced.
+             All observed points fall within the 95\% CI.}
+    \label{fig:mag_hist}
+\end{figure}
+
+\textbf{What the script computes}: \texttt{plots.plot\_magnitude\_histogram}
+bins both the union of simulated catalogs and the observed catalog in 0.1
+magnitude units. The CI bars come from the per-simulation counts at each bin
+(5th and 95th percentiles across 1000 simulations). The ``comparison
+catalog'' passed to this function is the live GeoNet observed catalog when
+available (which it is here).
+
+Key observations:
+\begin{itemize}
+    \item At $M3.0$--$3.1$, $\approx 75$ observed events vs.\ $\approx 85$
+          ensemble mean --- slight under-observation consistent with
+          short-term catalog incompleteness in the days immediately
+          post-mainshock.
+    \item The GR slope ($b = 1$) is reproduced at all magnitudes.
+    \item The M-test quantile ($q_\text{lo} = 0.736$) confirms the
+          magnitude distribution is better fit than 73.6\% of simulations.
+\end{itemize}
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Figure 5 --- Cumulative Count Time Series}
+\label{sec:cumulative}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.85\textwidth]{../build/pycsep/nz_etas_pycsep_cumulative.png}
+    \caption{Cumulative $M \geq 3.0$ event counts over the 7-day forecast
+             window, plotted on a 0--7 day axis relative to forecast start.
+             Produced by
+             \texttt{plots.plot\_cumulative\_events\_versus\_time(forecast,
+             observed\_catalog, time\_axis="days")}.
+             The black line is the GeoNet observed catalog
+             ($N_\text{obs} = 323$ at day 7). The dark blue band is the
+             ensemble 25th--75th percentile (IQR); the light blue band is
+             the 5th--95th percentile. The ensemble median is 334. The
+             observation tracks near the 40th--60th percentile throughout
+             the window, consistent with $\delta_1 = 0.594$,
+             $\delta_2 = 0.411$.}
+    \label{fig:cumulative}
+\end{figure}
+
+\textbf{What the script computes}: The cumulative plot uses the live observed
+catalog (not the representative simulation) because \texttt{observed\_catalog
+is not None}. The function evaluates the cumulative count of each of the 1000
+simulations and the observation at a fine time grid, then plots quantile bands.
+The Omori decay is visible as a decreasing slope through the window.
+
+Key observations:
+\begin{itemize}
+    \item The observed line stays inside the IQR for the full window.
+    \item By day 7, the observation (323) is below the median (334), placing
+          it at roughly the 41st percentile --- consistent with $\delta_2 = 0.411$.
+    \item The upper 95th-percentile tail extends far above the median
+          (characteristic ETAS branching overdispersion from rare
+          supercritical cascades). The 32.6\% indirect ($\text{Gen} \geq 2$)
+          share confirms multi-generation triggering is active.
+    \item No visible sudden jump in the observed curve, consistent with the
+          moderate observed maximum $M_w = 5.81$.
+\end{itemize}
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Summary of All Tests}
+
+\begin{table}[h!]
+\centering
+\caption{pyCSEP evaluation results for the 2016 Kaik\={o}ura ETAS forecast
+         (1000 simulations, $M_w \geq 3.0$, Days 7.0--14.0, pyCSEP v0.8.0).
+         All values from \texttt{nz\_etas\_pycsep\_summary.md}.}
+\begin{tabular}{p{3.8cm} p{2.8cm} p{2.5cm} p{2.2cm} p{2cm}}
+\toprule
+\textbf{Test} & \textbf{Statistic $\omega$} & \textbf{Quantile} & \textbf{Threshold} & \textbf{Status} \\
+\midrule
+N-test (full)          & 323               & $(0.594,\ 0.411)$ & both $>0.025$  & \textcolor{passgreen}{\textbf{Pass}}      \\
+N-test (rolling, 7d)   & KS $= 0.160$      & $p = 0.980$       & ---            & \textcolor{passgreen}{\textbf{Pass}}      \\
+M-test                 & $0.5501$          & $(0.736,\ 0.264)$ & $q_\text{hi}>0.05$ & \textcolor{passgreen}{\textbf{Pass}}  \\
+S-test$^\dagger$       & $-5.739$          & $(0.963,\ 0.037)$ & $q_\text{hi}>0.05$ & \textcolor{warnorange}{\textbf{Marginal}} \\
+PL-test$^\dagger$      & $-313.41$         & $(0.969,\ 0.031)$ & $q_\text{hi}>0.05$ & \textcolor{warnorange}{\textbf{Marginal}} \\
+Resampled M-test       & $0.5501$          & $(0.821,\ 0.179)$ & $q_\text{hi}>0.05$ & \textcolor{passgreen}{\textbf{Pass}}  \\
+MLL magnitude          & $163.598$         & $(0.356,\ 0.644)$ & supplementary  & \textcolor{passgreen}{\textbf{Pass}}      \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+\noindent $^\dagger$ \texttt{status=undersampled}: 16 observed events fell in
+zero-rate spatial cells and were excluded before recomputing the score.
+\end{table}
+
+\subsection{Overall interpretation}
+
+The S-test and PL-test are both marginal ($q = 0.037$ and $q = 0.031$
+respectively), sharing the same root cause: the isotropic spatial kernel
+assigns zero rate to cells where 16 of 323 observed events (5\%) actually
+occurred. Both tests are flagged \texttt{undersampled} by pyCSEP, which
+recomputes the score after excluding those events --- the residual marginal
+score reflects the remaining spatial mismatch in cells that do have ETAS rate.
+
+The temporal (N-test) and magnitude (M, resampled-M, MLL) components all
+pass cleanly. The rolling calibration confirms no systematic temporal bias
+($p = 0.980$).
+
+The primary fix is the spatial kernel: switching from
+\texttt{fitType = "aftershocks"} (inferred line source) to
+\texttt{fitType = "shakemap"} (geodetically constrained fault geometry) would
+distribute aftershock probability along all $\geq 12$ fault segments, filling
+in the zero-rate cells and likely bringing both S and PL tests into the
+passing range.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section*{References}
+\begin{itemize}
+    \item Savran, W.\ et al.\ (2022). pyCSEP: A Python Toolkit for Earthquake
+          Forecast Developers. \textit{Seismological Research Letters}, 93(5).
+          \url{https://doi.org/10.1785/0220210290}
+    \item Schorlemmer, D.\ et al.\ (2007). Earthquake likelihood model testing.
+          \textit{Seismological Research Letters}, 78(1), 17--29.
+    \item Zechar, J.D.\ et al.\ (2010). Likelihood-based tests for evaluating
+          space--rate--magnitude earthquake forecasts.
+          \textit{Bulletin of the Seismological Society of America}, 100(3),
+          1184--1195.
+    \item pyCSEP documentation: \url{https://docs.cseptesting.org}
+\end{itemize}
+
+\end{document}

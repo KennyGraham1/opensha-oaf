@@ -64,9 +64,10 @@ if [ "$SKIP_VIZ" = false ]; then
     [ -f "$VIZ_SCRIPT" ] || fail "Visualisation script not found: $VIZ_SCRIPT"
 
     python3 "$VIZ_SCRIPT" \
-        --summary   "$SCRIPT_DIR/nz_etas_simulations.txt" \
-        --catalogs  "$SCRIPT_DIR/simulated_catalogs" \
-        --output    "$SCRIPT_DIR/build/nz_visualization"
+        --summary      "$SCRIPT_DIR/nz_etas_simulations.txt" \
+        --catalog-dir  "$SCRIPT_DIR/simulated_catalogs" \
+        --spatial-rate "$SCRIPT_DIR/spatial_rate_map.csv" \
+        --output-stem  "$SCRIPT_DIR/build/nz_visualization/nz_etas_dashboard"
 
     log "Dashboard written to: build/nz_visualization/"
     ls "$SCRIPT_DIR/build/nz_visualization/" 2>/dev/null | sed 's/^/    /'
@@ -89,8 +90,11 @@ if [ "$SKIP_PYCSEP" = false ]; then
         log "Skipping pyCSEP step."
     else
         python3 "$PYCSEP_SCRIPT" \
-            --catalogs "$SCRIPT_DIR/simulated_catalogs" \
-            --output   "$SCRIPT_DIR/build/pycsep"
+            --summary     "$SCRIPT_DIR/nz_etas_simulations.txt" \
+            --config      "$CONFIG" \
+            --catalog-dir "$SCRIPT_DIR/simulated_catalogs" \
+            --output-dir  "$SCRIPT_DIR/build/pycsep" \
+            --cache-dir   "$SCRIPT_DIR/build/pycsep/cache"
 
         log "pyCSEP outputs written to: build/pycsep/"
         ls "$SCRIPT_DIR/build/pycsep/" 2>/dev/null | sed 's/^/    /'
