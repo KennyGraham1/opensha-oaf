@@ -72,6 +72,13 @@ public class ETASConfig {
         public boolean timeDependentMc;
         public boolean fitMSProductivity;
         public Long seed; // Optional: for reproducibility. If null, uses random seed.
+        /**
+         * Which ETAS model drives the forecast.
+         *   "sequence-specific" (default / null) — MLE-fitted to post-mainshock aftershocks.
+         *   "generic" — NZ regional prior only; no sequence-specific MLE.
+         *                Represents a pre-mainshock / day-0 operational forecast.
+         */
+        public String forecastModel;
     }
 
     public static class OutputConfig {

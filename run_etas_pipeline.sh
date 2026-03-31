@@ -24,6 +24,18 @@ SKIP_MODEL=false
 SKIP_VIZ=false
 SKIP_PYCSEP=false
 
+# Derive a run label from the config filename (strip path and .json extension).
+# Used to keep outputs from different experiments in separate directories.
+# e.g. etas_config.json → "default"
+#      etas_config_premainshock.json → "premainshock"
+config_label() {
+    local base
+    base="$(basename "$1" .json)"
+    base="${base#etas_config}"   # strip leading "etas_config"
+    base="${base#_}"             # strip leading underscore if present
+    echo "${base:-default}"
+}
+
 # ── Argument parsing ─────────────────────────────────────────────────────────
 for arg in "$@"; do
     case "$arg" in
@@ -63,14 +75,20 @@ if [ "$SKIP_VIZ" = false ]; then
 
     [ -f "$VIZ_SCRIPT" ] || fail "Visualisation script not found: $VIZ_SCRIPT"
 
-    python3 "$VIZ_SCRIPT" \
-        --summary      "$SCRIPT_DIR/nz_etas_simulations.txt" \
-        --catalog-dir  "$SCRIPT_DIR/simulated_catalogs" \
-        --spatial-rate "$SCRIPT_DIR/spatial_rate_map.csv" \
-        --output-stem  "$SCRIPT_DIR/build/nz_visualization/nz_etas_dashboard"
+    RUN_LABEL="$(config_label "$CONFIG")"
+    SUMMARY_FILE="$SCRIPT_DIR/nz_etas_simulations${RUN_LABEL:+_$RUN_LABEL}.txt"
+    CATALOG_DIR="$SCRIPT_DIR/simulated_catalogs${RUN_LABEL:+_$RUN_LABEL}"
+    SPATIAL_RATE="$SCRIPT_DIR/spatial_rate_map${RUN_LABEL:+_$RUN_LABEL}.csv"
+    VIZ_OUT="$SCRIPT_DIR/build/nz_visualization${RUN_LABEL:+_$RUN_LABEL}/nz_etas_dashboard"
 
-    log "Dashboard written to: build/nz_visualization/"
-    ls "$SCRIPT_DIR/build/nz_visualization/" 2>/dev/null | sed 's/^/    /'
+    python3 "$VIZ_SCRIPT" \
+        --summary      "$SUMMARY_FILE" \
+        --catalog-dir  "$CATALOG_DIR" \
+        --spatial-rate "$SPATIAL_RATE" \
+        --output-stem  "$VIZ_OUT"
+
+    log "Dashboard written to: build/nz_visualization${RUN_LABEL:+_$RUN_LABEL}/"
+    ls "$(dirname "$VIZ_OUT")" 2>/dev/null | sed 's/^/    /'
 else
     log "Step 2/3 — Skipping visualisation (--skip-viz)"
 fi
@@ -89,15 +107,20 @@ if [ "$SKIP_PYCSEP" = false ]; then
         log "  python3 -m pip install --user -e vendor/pycsep"
         log "Skipping pyCSEP step."
     else
-        python3 "$PYCSEP_SCRIPT" \
-            --summary     "$SCRIPT_DIR/nz_etas_simulations.txt" \
-            --config      "$CONFIG" \
-            --catalog-dir "$SCRIPT_DIR/simulated_catalogs" \
-            --output-dir  "$SCRIPT_DIR/build/pycsep" \
-            --cache-dir   "$SCRIPT_DIR/build/pycsep/cache"
+        RUN_LABEL="$(config_label "$CONFIG")"
+        SUMMARY_FILE="$SCRIPT_DIR/nz_etas_simulations${RUN_LABEL:+_$RUN_LABEL}.txt"
+        CATALOG_DIR="$SCRIPT_DIR/simulated_catalogs${RUN_LABEL:+_$RUN_LABEL}"
+        PYCSEP_OUT="$SCRIPT_DIR/build/pycsep${RUN_LABEL:+_$RUN_LABEL}"
 
-        log "pyCSEP outputs written to: build/pycsep/"
-        ls "$SCRIPT_DIR/build/pycsep/" 2>/dev/null | sed 's/^/    /'
+        python3 "$PYCSEP_SCRIPT" \
+            --summary     "$SUMMARY_FILE" \
+            --config      "$CONFIG" \
+            --catalog-dir "$CATALOG_DIR" \
+            --output-dir  "$PYCSEP_OUT" \
+            --cache-dir   "$PYCSEP_OUT/cache"
+
+        log "pyCSEP outputs written to: build/pycsep${RUN_LABEL:+_$RUN_LABEL}/"
+        ls "$PYCSEP_OUT/" 2>/dev/null | sed 's/^/    /'
     fi
 else
     log "Step 3/3 — Skipping pyCSEP (--skip-pycsep)"
@@ -107,7 +130,9 @@ fi
 hr
 log "Pipeline complete."
 log "Outputs:"
-log "  Forecast summary : nz_etas_simulations.txt"
-log "  Simulated catalogs: simulated_catalogs/"
-[ "$SKIP_VIZ"    = false ] && log "  Dashboard        : build/nz_visualization/"
-[ "$SKIP_PYCSEP" = false ] && log "  pyCSEP plots     : build/pycsep/"
+RUN_LABEL="$(config_label "$CONFIG")"
+log "  Config           : $CONFIG"
+log "  Forecast summary : nz_etas_simulations${RUN_LABEL:+_$RUN_LABEL}.txt"
+log "  Simulated catalogs: simulated_catalogs${RUN_LABEL:+_$RUN_LABEL}/"
+[ "$SKIP_VIZ"    = false ] && log "  Dashboard        : build/nz_visualization${RUN_LABEL:+_$RUN_LABEL}/"
+[ "$SKIP_PYCSEP" = false ] && log "  pyCSEP plots     : build/pycsep${RUN_LABEL:+_$RUN_LABEL}/"

@@ -3,6 +3,8 @@ package org.opensha.oaf.etas.examples;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import org.opensha.commons.geo.Location;
+import org.opensha.commons.data.function.ArbDiscrEmpiricalDistFunc;
+import org.opensha.oaf.etas.ETAS_AftershockModel;
 import org.opensha.oaf.etas.ETAS_AftershockModel_Generic;
 import org.opensha.oaf.etas.ETAS_AftershockModel_SequenceSpecific;
 import org.opensha.oaf.etas.ETAS_RateModel2D;
@@ -221,7 +223,7 @@ public class ETAS_Demo_NZ {
         double[] pVec = ETAS_StatsCalc.linspace(config.gridSearch.pMin, config.gridSearch.pMax, config.gridSearch.pN);
         double[] cVec = ETAS_StatsCalc.logspace(config.gridSearch.cMin, config.gridSearch.cMax, config.gridSearch.cN);
 
-        // --- Configure Spatial Location Sampling (must be set before seqModel is constructed) ---
+        // --- Configure Spatial Location Sampling (must be done before simulation) ---
         if (config.spatial != null && config.spatial.enabled) {
             org.opensha.oaf.etas.ETAScatalog.configureSpatialSampling(true, config.spatial.stressDrop, 10.0);
             System.out.println("Spatial location sampling: ENABLED (stressDrop=" + config.spatial.stressDrop + " MPa)");
@@ -229,32 +231,46 @@ public class ETAS_Demo_NZ {
             org.opensha.oaf.etas.ETAScatalog.configureSpatialSampling(false, 3.0, 10.0);
         }
 
-        // --- Run Sequence Specific Model ---
-        System.out.println("\nComputing sequence-specific ETAS model...");
-        ETAS_AftershockModel_SequenceSpecific seqModel = new ETAS_AftershockModel_SequenceSpecific(
-                mainshock, filteredAftershocks,
-                amsVec, amsSigma, aVec, pVec, cVec,
-                config.priors.alpha, config.priors.b, config.priors.refMag,
-                config.dataWindow.minDays, config.dataWindow.maxDays,
-                config.forecastWindow.minDays, config.forecastWindow.maxDays,
-                config.catalog.magComplete, config.simulation.maxMag,
-                config.simulation.maxGenerations, config.simulation.nSims,
-                config.simulation.fitMSProductivity, config.simulation.timeDependentMc,
-                priorModel, null, false);
+        // --- Choose model: sequence-specific MLE or generic (pre-mainshock / day-0) ---
+        boolean useGenericModel = "generic".equalsIgnoreCase(
+                config.simulation.forecastModel == null ? "" : config.simulation.forecastModel);
+
+        ETAS_AftershockModel activeModel;
+        if (useGenericModel) {
+            System.out.println("\nForecast model: GENERIC (NZ regional prior — no aftershock fitting).");
+            System.out.println("This is a pre-mainshock / day-0 forecast using only historical NZ seismicity parameters.");
+            priorModel.generateStochasticCatalog(
+                    config.dataWindow.minDays, config.dataWindow.maxDays,
+                    config.forecastWindow.minDays, config.forecastWindow.maxDays,
+                    config.simulation.nSims);
+            activeModel = priorModel;
+        } else {
+            System.out.println("\nForecast model: SEQUENCE-SPECIFIC (MLE fitted to aftershocks).");
+            activeModel = new ETAS_AftershockModel_SequenceSpecific(
+                    mainshock, filteredAftershocks,
+                    amsVec, amsSigma, aVec, pVec, cVec,
+                    config.priors.alpha, config.priors.b, config.priors.refMag,
+                    config.dataWindow.minDays, config.dataWindow.maxDays,
+                    config.forecastWindow.minDays, config.forecastWindow.maxDays,
+                    config.catalog.magComplete, config.simulation.maxMag,
+                    config.simulation.maxGenerations, config.simulation.nSims,
+                    config.simulation.fitMSProductivity, config.simulation.timeDependentMc,
+                    priorModel, null, false);
+        }
 
         // --- Output Results ---
         DecimalFormat df = new DecimalFormat("0.0000");
-        System.out.println("\n--- ETAS Results ---");
-        System.out.println("ams-value (Mainshock Productivity): " + df.format(seqModel.getMaxLikelihood_ams()));
-        System.out.println("a-value (Aftershock Productivity): " + df.format(seqModel.getMaxLikelihood_a()));
-        System.out.println("p-value: " + df.format(seqModel.getMaxLikelihood_p()));
-        System.out.println("c-value: " + df.format(seqModel.getMaxLikelihood_c()));
-        System.out.println("b-value: " + df.format(seqModel.get_b()));
+        System.out.println("\n--- ETAS Parameters Used ---");
+        System.out.println("ams-value (Mainshock Productivity): " + df.format(activeModel.getMaxLikelihood_ams()));
+        System.out.println("a-value (Aftershock Productivity): " + df.format(activeModel.getMaxLikelihood_a()));
+        System.out.println("p-value: " + df.format(activeModel.getMaxLikelihood_p()));
+        System.out.println("c-value: " + df.format(activeModel.getMaxLikelihood_c()));
+        System.out.println("b-value: " + df.format(activeModel.get_b()));
 
         // --- Forecast ---
-        double rateMc = seqModel.getExpectedNumEvents(config.catalog.magComplete,
+        double rateMc = activeModel.getExpectedNumEvents(config.catalog.magComplete,
                 config.forecastWindow.minDays, config.forecastWindow.maxDays);
-        double bVal = seqModel.get_b();
+        double bVal = activeModel.get_b();
         double Mc = config.catalog.magComplete;
 
         // Use configurable forecast magnitudes (default to [3,4,5] if not specified)
@@ -276,8 +292,8 @@ public class ETAS_Demo_NZ {
         // --- Probability — counted directly from simulation outcomes (not Poisson approx) ---
         System.out.println("\nProbability of >=1 event:");
         for (int i = 0; i < forecastMags.length; i++) {
-            org.opensha.commons.data.function.ArbDiscrEmpiricalDistFunc dist =
-                    seqModel.computeNum_DistributionFunc(
+            ArbDiscrEmpiricalDistFunc dist =
+                    activeModel.computeNum_DistributionFunc(
                             config.forecastWindow.minDays, config.forecastWindow.maxDays, forecastMags[i]);
             int simsWithAtLeastOne = 0;
             for (int j = 0; j < dist.size(); j++) {
@@ -317,12 +333,12 @@ public class ETAS_Demo_NZ {
             pw.println("Mag Complete (Mc): " + config.catalog.magComplete);
             pw.println("Num Simulations: " + config.simulation.nSims);
             pw.println();
-            pw.println("--- Fitted Parameters ---");
-            pw.println("ams-value: " + df.format(seqModel.getMaxLikelihood_ams()));
-            pw.println("a-value: " + df.format(seqModel.getMaxLikelihood_a()));
-            pw.println("p-value: " + df.format(seqModel.getMaxLikelihood_p()));
-            pw.println("c-value: " + df.format(seqModel.getMaxLikelihood_c()));
-            pw.println("b-value: " + df.format(seqModel.get_b()));
+            pw.println("--- Parameters Used (" + (useGenericModel ? "generic NZ prior" : "sequence-specific MLE") + ") ---");
+            pw.println("ams-value: " + df.format(activeModel.getMaxLikelihood_ams()));
+            pw.println("a-value: " + df.format(activeModel.getMaxLikelihood_a()));
+            pw.println("p-value: " + df.format(activeModel.getMaxLikelihood_p()));
+            pw.println("c-value: " + df.format(activeModel.getMaxLikelihood_c()));
+            pw.println("b-value: " + df.format(activeModel.get_b()));
             pw.println();
             pw.println("--- Forecast (Days " + config.forecastWindow.minDays + "-" + config.forecastWindow.maxDays
                     + ") ---");
@@ -343,11 +359,11 @@ public class ETAS_Demo_NZ {
             for (int magIdx = 0; magIdx < forecastMags.length; magIdx++) {
                 double magThreshold = forecastMags[magIdx];
                 // Use built-in OpenSHA method for fractile calculation
-                double p5 = seqModel.getFractileNumEvents(magThreshold,
+                double p5 = activeModel.getFractileNumEvents(magThreshold,
                         config.forecastWindow.minDays, config.forecastWindow.maxDays, 0.05);
-                double p50 = seqModel.getFractileNumEvents(magThreshold,
+                double p50 = activeModel.getFractileNumEvents(magThreshold,
                         config.forecastWindow.minDays, config.forecastWindow.maxDays, 0.50);
-                double p95 = seqModel.getFractileNumEvents(magThreshold,
+                double p95 = activeModel.getFractileNumEvents(magThreshold,
                         config.forecastWindow.minDays, config.forecastWindow.maxDays, 0.95);
                 pw.println("  M>=" + magThreshold + ":  5th=" + (int) p5 + "  Median=" + (int) p50 + "  95th="
                         + (int) p95);
@@ -360,7 +376,7 @@ public class ETAS_Demo_NZ {
             System.out.println("\nSummary saved to: " + file.getAbsolutePath());
 
             // --- Export Catalogs ---
-            if (seqModel.getSimulatedCatalog() != null) {
+            if (activeModel.getSimulatedCatalog() != null) {
                 java.io.File simDir = new java.io.File(config.output.catalogDir);
                 if (!simDir.exists())
                     simDir.mkdir();
@@ -376,7 +392,7 @@ public class ETAS_Demo_NZ {
                     } else {
                         simPw.println("# RelativeTime(days) Magnitude Generation");
                     }
-                    String catStr = seqModel.getSimulatedCatalog().printCatalog(i);
+                    String catStr = activeModel.getSimulatedCatalog().printCatalog(i);
                     simPw.print(catStr);
                     simPw.close();
                 }
@@ -391,7 +407,7 @@ public class ETAS_Demo_NZ {
         if (config.spatial != null && config.spatial.enabled) {
             System.out.println("\n--- Computing Spatial Rate Map ---");
             try {
-                ETAS_RateModel2D rateModel2D = new ETAS_RateModel2D(seqModel);
+                ETAS_RateModel2D rateModel2D = new ETAS_RateModel2D(activeModel);
                 GriddedGeoDataSet rateGrid = rateModel2D.calculateRateModel(
                         config.spatial.plotDuration,
                         config.spatial.scale,
