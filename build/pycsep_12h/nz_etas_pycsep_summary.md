@@ -3,49 +3,49 @@
 - pyCSEP version: `0.8.0`
 - pyCSEP source: `/home/kennyg/projects/ETASModels/opensha-oaf/vendor/pycsep/csep/__init__.py`
 - Event: `2016p858000`
-- Analysis date: `Tue Mar 31 22:19:35 NZDT 2026`
+- Analysis date: `Wed Apr 01 20:09:05 NZDT 2026`
 - Mainshock origin time: `2016-11-13T11:02:56.346094+00:00`
 - Mainshock metadata source: `GeoNet FDSN event service`
 - Mainshock magnitude: `7.82`
-- Forecast window: `0.5` to `14.5` days
-- Forecast absolute window: `2016-11-13T23:02:56.346094+00:00` to `2016-11-27T23:02:56.346094+00:00`
+- Forecast window: `7.0` to `14.0` days
+- Forecast absolute window: `2016-11-20T11:02:56.346094+00:00` to `2016-11-27T11:02:56.346094+00:00`
 - Catalogs loaded into pyCSEP: `1000`
-- Raw ETAS rows read: `11294126`
-- Events kept after `M>=Mc` filtering: `1141738`
-- Events kept after NZ pyCSEP region filtering: `1100673`
-- Representative catalog: `sim_0269` with `1161` events
-- Ensemble event-count median: `1162`
-- Median indirect (`Gen>=2`) share of `M>=Mc` events: `38.9%`
+- Raw ETAS rows read: `906367`
+- Events kept after `M>=Mc` filtering: `91475`
+- Events kept after NZ pyCSEP region filtering: `48345`
+- Representative catalog: `sim_0017` with `45` events
+- Ensemble event-count median: `45`
+- Median indirect (`Gen>=2`) share of `M>=Mc` events: `2.6%`
 
 ## Observed Catalog
 
-- Observed catalog: `GeoNet observed 2016p858000 days 0.5-14.5`
-- Observed event count in testing region: `1712`
-- Observed catalog cache: `/home/kennyg/projects/ETASModels/opensha-oaf/build/pycsep_12h/cache/2016p858000_d0p5_14p5_mc3_observed.csv`
+- Observed catalog: `GeoNet observed 2016p858000 days 7.0-14.0`
+- Observed event count in testing region: `323`
+- Observed catalog cache: `/home/kennyg/projects/ETASModels/opensha-oaf/build/pycsep_12h/cache/2016p858000_d7_14_mc3_observed.csv`
 
 ## Catalog-Test Diagnostics
 
-- Observed events in zero ETAS spatial-rate cells: `12` across `11` spatial cells
-- Observed events in zero ETAS space-magnitude bins: `43`
-- Zero-rate ETAS spatial cells in testing region: `1978` of `6343`
+- Observed events in zero ETAS spatial-rate cells: `10` across `10` spatial cells
+- Observed events in zero ETAS space-magnitude bins: `62`
+- Zero-rate ETAS spatial cells in testing region: `2457` of `6343`
 
 ## Evaluation Results
 
-- `catalog_number_test`: observed statistic `1712`, quantile `(0.012, 0.988)`, status `normal`
-- `catalog_magnitude_test`: observed statistic `0.862947`, quantile `(0.77, 0.23)`, status `normal`
-- `catalog_spatial_test`: observed statistic `-4.79459`, quantile `(0, 1)`, status `undersampled`
-- `catalog_pseudolikelihood_test`: observed statistic `2654.77`, quantile `(0, 1)`, status `undersampled`
-- `catalog_resampled_magnitude_test`: observed statistic `0.862947`, quantile `(0.299, 0.701)`, status `normal`
-- `catalog_mll_magnitude_test`: observed statistic `200.954`, quantile `(0.024, 0.976)`, status `normal`
+- `catalog_number_test`: observed statistic `323`, quantile `(0, 1)`, status `normal`
+- `catalog_magnitude_test`: observed statistic `0.591378`, quantile `(1, 0)`, status `normal`
+- `catalog_spatial_test`: observed statistic `-6.37545`, quantile `(0, 1)`, status `undersampled`
+- `catalog_pseudolikelihood_test`: observed statistic `-829.934`, quantile `(1, 0)`, status `undersampled`
+- `catalog_resampled_magnitude_test`: observed statistic `0.591378`, quantile `(0.744, 0.256)`, status `normal`
+- `catalog_mll_magnitude_test`: observed statistic `129.394`, quantile `(0.39, 0.61)`, status `normal`
 
 ## Rolling Diagnostics
 
-- Rolling number-test sub-windows: `14`
-- Rolling calibration KS statistic: `0.365` with p-value `0.035296267447287866`
+- Rolling number-test sub-windows: `7`
+- Rolling calibration KS statistic: `0.999` with p-value `2.0000000000000126e-21`
 
 ## Generated Files
 
-- `/home/kennyg/projects/ETASModels/opensha-oaf/build/pycsep_12h/cache/2016p858000_d0p5_14p5_mc3_observed.csv`
+- `/home/kennyg/projects/ETASModels/opensha-oaf/build/pycsep_12h/cache/2016p858000_d7_14_mc3_observed.csv`
 - `/home/kennyg/projects/ETASModels/opensha-oaf/build/pycsep_12h/cache/2016p858000_mainshock.json`
 - `/home/kennyg/projects/ETASModels/opensha-oaf/build/pycsep_12h/evaluation_json/catalog_magnitude_test.json`
 - `/home/kennyg/projects/ETASModels/opensha-oaf/build/pycsep_12h/evaluation_json/catalog_mll_magnitude_test.json`

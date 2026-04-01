@@ -8,8 +8,8 @@
     },
 
     "forecastWindow": {
-        "minDays": 1.0,
-        "maxDays": 14.5
+        "minDays": 7.0,
+        "maxDays": 14.0
     },
 
     "region": {
@@ -54,7 +54,7 @@
         "nSims": 1000,
         "maxGenerations": 10,
         "maxMag": 9.5,
-        "timeDependentMc": false,
+        "timeDependentMc": true,
         "fitMSProductivity": true,
         "forecastModel": "sequence-specific",
         "seed": 12345

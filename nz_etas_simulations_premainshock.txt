@@ -1,7 +1,7 @@
 ETAS Forecast Results
 =====================
 Event: 2016p858000
-Analysis Date: Tue Mar 31 20:16:10 NZDT 2026
+Analysis Date: Wed Apr 01 20:20:56 NZDT 2026
 Mag Complete (Mc): 3.0
 Num Simulations: 1000
 
@@ -12,24 +12,24 @@ p-value: 1.0800
 c-value: 0.0079
 b-value: 1.0000
 
---- Forecast (Days 0.5-14.5) ---
+--- Forecast (Days 7.0-14.0) ---
 Expected Number of Events:
-  M>=3.0: 801.6889
-  M>=4.0: 80.1689
-  M>=5.0: 8.0169
-  M>=6.0: 0.8017
+  M>=3.0: 144.9701
+  M>=4.0: 14.4970
+  M>=5.0: 1.4497
+  M>=6.0: 0.1450
 
 Probability of >=1 Event:
   M>=3.0: 100.0000%
-  M>=4.0: 100.0000%
-  M>=5.0: 84.6000%
-  M>=6.0: 20.8000%
+  M>=4.0: 99.9000%
+  M>=5.0: 62.6000%
+  M>=6.0: 9.7000%
 
 --- Uncertainty (from 1000 simulations) ---
 Percentiles of event counts in forecast window:
-  M>=3.0:  5th=109  Median=215  95th=508
-  M>=4.0:  5th=9  Median=21  95th=54
-  M>=5.0:  5th=0  Median=2  95th=6
+  M>=3.0:  5th=72  Median=103  95th=186
+  M>=4.0:  5th=5  Median=11  95th=21
+  M>=5.0:  5th=0  Median=1  95th=3
   M>=6.0:  5th=0  Median=0  95th=1
 
 --- Simulated Catalogs ---

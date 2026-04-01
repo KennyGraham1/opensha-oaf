@@ -51,48 +51,53 @@ class ExperimentDef:
     pycsep_dir: str              # relative to root
 
 
+# All experiments share the same fixed evaluation window (days 7–14 post-mainshock).
+# Only the MLE data window (issue time) varies.  This makes N_obs identical across
+# all sequence-specific runs and allows direct, unbiased N-test comparison.
+# timeDependentMc is enabled for data windows ≤ 1 day to correct for STAI.
+
 EXPERIMENTS: list[ExperimentDef] = [
     ExperimentDef(
         label="generic\n(0 h data)",
         data_days=0.0,
-        forecast_start=0.5,
-        forecast_end=14.5,
+        forecast_start=7.0,
+        forecast_end=14.0,
         model_type="generic",
         summary_file="nz_etas_simulations_premainshock.txt",
         pycsep_dir="build/pycsep_premainshock",
     ),
     ExperimentDef(
-        label="2 h data",
+        label="2 h data\n(tdMc)",
         data_days=2/24,
-        forecast_start=2/24,
-        forecast_end=14.5,
+        forecast_start=7.0,
+        forecast_end=14.0,
         model_type="sequence-specific",
         summary_file="nz_etas_simulations_2h.txt",
         pycsep_dir="build/pycsep_2h",
     ),
     ExperimentDef(
-        label="6 h data",
+        label="6 h data\n(tdMc)",
         data_days=6/24,
-        forecast_start=6/24,
-        forecast_end=14.5,
+        forecast_start=7.0,
+        forecast_end=14.0,
         model_type="sequence-specific",
         summary_file="nz_etas_simulations_6h.txt",
         pycsep_dir="build/pycsep_6h",
     ),
     ExperimentDef(
-        label="12 h data",
+        label="12 h data\n(tdMc)",
         data_days=0.5,
-        forecast_start=0.5,
-        forecast_end=14.5,
+        forecast_start=7.0,
+        forecast_end=14.0,
         model_type="sequence-specific",
         summary_file="nz_etas_simulations_12h.txt",
         pycsep_dir="build/pycsep_12h",
     ),
     ExperimentDef(
-        label="1 day data",
+        label="1 day data\n(tdMc)",
         data_days=1.0,
-        forecast_start=1.0,
-        forecast_end=14.5,
+        forecast_start=7.0,
+        forecast_end=14.0,
         model_type="sequence-specific",
         summary_file="nz_etas_simulations_1d.txt",
         pycsep_dir="build/pycsep_1d",
@@ -100,8 +105,8 @@ EXPERIMENTS: list[ExperimentDef] = [
     ExperimentDef(
         label="2 day data",
         data_days=2.0,
-        forecast_start=2.0,
-        forecast_end=14.5,
+        forecast_start=7.0,
+        forecast_end=14.0,
         model_type="sequence-specific",
         summary_file="nz_etas_simulations_2d.txt",
         pycsep_dir="build/pycsep_2d",
@@ -109,8 +114,8 @@ EXPERIMENTS: list[ExperimentDef] = [
     ExperimentDef(
         label="3 day data",
         data_days=3.0,
-        forecast_start=3.0,
-        forecast_end=14.5,
+        forecast_start=7.0,
+        forecast_end=14.0,
         model_type="sequence-specific",
         summary_file="nz_etas_simulations_3d.txt",
         pycsep_dir="build/pycsep_3d",
@@ -197,7 +202,10 @@ def parse_summary_file(path: Path) -> ForecastStats:
     stats.params.p   = _float(r"p-value:\s*([-\d.]+)")
     stats.params.c   = _float(r"c-value:\s*([-\d.]+)")
     stats.params.b   = _float(r"b-value:\s*([-\d.]+)")
-    stats.expected_m3 = _float(r"M>=3\.0:\s*([\d.]+)\s*$")
+    # Parse from the "Expected Number of Events" block to avoid ambiguity with
+    # later percentile/probability lines that also contain "M>=3.0".
+    m_exp = re.search(r"Expected Number of Events:\s*\n\s*M>=3\.0:\s*([\d.]+)", text)
+    stats.expected_m3 = float(m_exp.group(1)) if m_exp else None
     # percentile line: "  M>=3.0:  5th=NNN  Median=NNN  95th=NNN"
     m = re.search(r"M>=3\.0:\s+5th=(\d+)\s+Median=(\d+)\s+95th=(\d+)", text)
     if m:
@@ -638,9 +646,10 @@ def write_report(results: list[ExperimentResult], output_path: Path) -> None:
     a("## Event: 2016 Kaikōura M7.82 (GeoNet `2016p858000`)")
     a("")
     a("This report compares ETAS forecasts fitted on progressively longer early aftershock")
-    a("data windows, from a pure generic prior (0 data) to a fully fitted 7-day model.")
-    a("The key question: **how quickly does sequence-specific MLE fitting correct the generic")
-    a("prior's underprediction of this highly productive sequence?**")
+    a("data windows, from a generic-parameter conditioned baseline (no sequence-specific MLE)")
+    a("to a fully fitted 7-day model.")
+    a("All experiments verify the same fixed forecast window (days 7–14),")
+    a("so differences isolate issue-time sensitivity rather than horizon effects.")
     a("")
     a("---")
     a("")
@@ -665,17 +674,17 @@ def write_report(results: list[ExperimentResult], output_path: Path) -> None:
         a("| " + " | ".join(row) + " |")
 
     a("")
-    a("**Key observation**: watch how `ams` changes as more data is used.")
-    a("The generic prior starts at −2.423. With real aftershock data the MLE should push")
-    a("`ams` higher (less negative = more productive), converging toward the 7-day estimate.")
+    a("**Key observation**: parameter evolution is not monotonic.")
+    a("The corrected rerun shows regime-like transitions in (ams, a, p, c) rather than")
+    a("smooth convergence with data-window length.")
     a("")
     a("---")
     a("")
     a("## B. Forecast vs Observed (M≥3)")
     a("")
-    a("Note: each experiment has a *different* forecast window and therefore a *different*")
-    a("observed count N_obs — the observed catalog is queried for exactly that window.")
-    a("The ratio median/N_obs measures forecast bias (1.0 = unbiased).")
+    a("All experiments use the same forecast window (days 7–14), so observed count N_obs")
+    a("is directly comparable across issue times. The ratio median/N_obs measures")
+    a("forecast bias (1.0 = unbiased).")
     a("")
 
     headers = ["Experiment", "Forecast window", "N_obs", "Ensemble median", "5th pctile", "95th pctile", "Median/N_obs"]
@@ -742,17 +751,15 @@ def write_report(results: list[ExperimentResult], output_path: Path) -> None:
     a("")
     a("### What happens as data is added")
     a("")
-    a("Each additional hour of aftershock observation allows the MLE to push `ams` upward,")
-    a("increasing the predicted productivity. The N-test quantile measures how well the")
-    a("model's count distribution contains the observed count.")
+    a("As additional aftershock data are included, the fitted ETAS parameters move between")
+    a("distinct regimes rather than converging monotonically. The N-test quantiles show")
+    a("how each regime's count distribution compares with the same observed target catalog.")
     a("")
-    a("### Comparison caveat")
+    a("### Comparison strength")
     a("")
-    a("The forecast windows are not identical across experiments — longer data windows")
-    a("mean shorter remaining forecast windows, and fewer observed events to predict.")
-    a("The 7-day reference model forecasts a quieter period (days 7–14) than the")
-    a("early-window models (which must predict the Omori peak). This is an intrinsically")
-    a("harder problem for the early-window models even if `ams` converges correctly.")
+    a("Because all runs verify the same days 7–14 target, differences in N-test behavior")
+    a("are directly attributable to issue-time-dependent fitting choices and resulting")
+    a("forecast distributions, not to different verification horizons.")
     a("")
     a("---")
     a("")

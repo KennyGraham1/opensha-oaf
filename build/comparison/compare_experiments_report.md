@@ -3,9 +3,10 @@
 ## Event: 2016 Kaikōura M7.82 (GeoNet `2016p858000`)
 
 This report compares ETAS forecasts fitted on progressively longer early aftershock
-data windows, from a pure generic prior (0 data) to a fully fitted 7-day model.
-The key question: **how quickly does sequence-specific MLE fitting correct the generic
-prior's underprediction of this highly productive sequence?**
+data windows, from a generic-parameter conditioned baseline (no sequence-specific MLE)
+to a fully fitted 7-day model.
+All experiments verify the same fixed forecast window (days 7–14),
+so differences isolate issue-time sensitivity rather than horizon effects.
 
 ---
 
@@ -16,35 +17,35 @@ The generic prior means are: ams = −2.423, p = 1.08, c = 0.01 days.
 | Experiment | Data window | Model | ams | a | p | c (days) |
 | --- | --- | --- | --- | --- | --- | --- |
 | generic (0 h data) | 0.0 h | generic | -2.537 | -2.537 | 1.080 | 0.008 |
-| 2 h data | 2.0 h | sequence-specific | -2.750 | -2.750 | 1.100 | 0.100 |
-| 6 h data | 6.0 h | sequence-specific | -2.750 | -2.300 | 1.000 | 0.100 |
-| 12 h data | 12.0 h | sequence-specific | -2.750 | -2.000 | 0.900 | 0.100 |
-| 1 day data | 1 d | sequence-specific | -2.750 | -2.000 | 0.900 | 0.100 |
+| 2 h data (tdMc) | 2.0 h | sequence-specific | -2.250 | -3.050 | 1.000 | 0.001 |
+| 6 h data (tdMc) | 6.0 h | sequence-specific | -2.000 | -3.200 | 1.000 | 0.002 |
+| 12 h data (tdMc) | 12.0 h | sequence-specific | -1.750 | -3.050 | 0.900 | 0.001 |
+| 1 day data (tdMc) | 1 d | sequence-specific | -1.750 | -3.050 | 0.900 | 0.001 |
 | 2 day data | 2 d | sequence-specific | -2.750 | -2.000 | 0.900 | 0.100 |
 | 3 day data | 3 d | sequence-specific | -2.750 | -2.000 | 0.900 | 0.100 |
 | 7 day data (reference) | 7 d | sequence-specific | -3.000 | -2.000 | 1.100 | 0.100 |
 
-**Key observation**: watch how `ams` changes as more data is used.
-The generic prior starts at −2.423. With real aftershock data the MLE should push
-`ams` higher (less negative = more productive), converging toward the 7-day estimate.
+**Key observation**: parameter evolution is not monotonic.
+The corrected rerun shows regime-like transitions in (ams, a, p, c) rather than
+smooth convergence with data-window length.
 
 ---
 
 ## B. Forecast vs Observed (M≥3)
 
-Note: each experiment has a *different* forecast window and therefore a *different*
-observed count N_obs — the observed catalog is queried for exactly that window.
-The ratio median/N_obs measures forecast bias (1.0 = unbiased).
+All experiments use the same forecast window (days 7–14), so observed count N_obs
+is directly comparable across issue times. The ratio median/N_obs measures
+forecast bias (1.0 = unbiased).
 
 | Experiment | Forecast window | N_obs | Ensemble median | 5th pctile | 95th pctile | Median/N_obs |
 | --- | --- | --- | --- | --- | --- | --- |
-| generic (0 h data) | 0.5–14.5 days | 1712 | 196 | 109 | 508 | 0.11 |
-| 2 h data | 0.0833–14.5 days | 2067 | 217 | 113 | 567 | 0.10 |
-| 6 h data | 0.25–14.5 days | 1924 | 380 | 220 | 742 | 0.20 |
-| 12 h data | 0.5–14.5 days | 1712 | 1162 | 725 | 1579 | 0.68 |
-| 1 day data | 1–14.5 days | 1393 | 1428 | 881 | 1908 | 1.03 |
-| 2 day data | 2–14.5 days | 962 | 1345 | 1146 | 1907 | 1.40 |
-| 3 day data | 3–14.5 days | 725 | 1108 | 972 | 1374 | 1.53 |
+| generic (0 h data) | 7–14 days | 323 | 86 | 72 | 186 | 0.27 |
+| 2 h data (tdMc) | 7–14 days | 323 | 54 | 66 | 115 | 0.17 |
+| 6 h data (tdMc) | 7–14 days | 323 | 50 | 68 | 114 | 0.15 |
+| 12 h data (tdMc) | 7–14 days | 323 | 45 | 69 | 119 | 0.14 |
+| 1 day data (tdMc) | 7–14 days | 323 | 51 | 72 | 125 | 0.16 |
+| 2 day data | 7–14 days | 323 | 499 | 421 | 771 | 1.54 |
+| 3 day data | 7–14 days | 323 | 492 | 428 | 668 | 1.52 |
 | 7 day data (reference) | 7–14 days | 323 | 334 | 273 | 490 | 1.03 |
 
 ---
@@ -56,13 +57,13 @@ rolling KS p > 0.05.
 
 | Experiment | N-test δ₁ | N-test δ₂ | N-test | M-test q_lo | S-test q_hi | PL-test q_hi | Rolling KS p | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| generic (0 h data) | 0.000 | 1.000 | **FAIL** | 0.997 | 1.000 | 1.000 | 7.595e-28 | **FAIL** |
-| 2 h data | 0.000 | 1.000 | **FAIL** | 0.984 | 1.000 | 1.000 | 1.024e-28 | **FAIL** |
-| 6 h data | 0.000 | 1.000 | **FAIL** | 0.971 | 1.000 | 1.000 | 1.876e-22 | **FAIL** |
-| 12 h data | 0.012 | 0.988 | **FAIL** | 0.770 | 1.000 | 1.000 | 3.530e-02 | **FAIL** |
-| 1 day data | 0.569 | 0.434 | **Pass** | 0.440 | 1.000 | 0.843 | 1.767e-02 | **FAIL** |
-| 2 day data | 0.983 | 0.017 | **FAIL** | 0.033 | 0.979 | 0.030 | 2.339e-07 | **FAIL** |
-| 3 day data | 0.992 | 0.008 | **FAIL** | 0.027 | 0.687 | 0.012 | 1.998e-07 | **FAIL** |
+| generic (0 h data) | 0.003 | 0.997 | **FAIL** | 0.999 | 0.986 | 0.011 | 4.989e-12 | **FAIL** |
+| 2 h data (tdMc) | 0.000 | 1.000 | **FAIL** | 1.000 | 1.000 | 0.000 | 4.374e-18 | **FAIL** |
+| 6 h data (tdMc) | 0.000 | 1.000 | **FAIL** | 1.000 | 1.000 | 0.000 | 1.563e-16 | **FAIL** |
+| 12 h data (tdMc) | 0.000 | 1.000 | **FAIL** | 1.000 | 1.000 | 0.000 | 2.000e-21 | **FAIL** |
+| 1 day data (tdMc) | 0.000 | 1.000 | **FAIL** | 1.000 | 1.000 | 0.000 | 2.560e-19 | **FAIL** |
+| 2 day data | 0.998 | 0.002 | **FAIL** | 0.297 | 0.059 | 0.018 | 2.599e-05 | **FAIL** |
+| 3 day data | 0.992 | 0.008 | **FAIL** | 0.302 | 0.044 | 0.016 | 3.107e-05 | **FAIL** |
 | 7 day data (reference) | 0.594 | 0.411 | **Pass** | 0.736 | 0.037 | 0.031 | 9.800e-01 | **Pass** |
 
 ---
@@ -78,17 +79,15 @@ underestimates the event count by a large factor.
 
 ### What happens as data is added
 
-Each additional hour of aftershock observation allows the MLE to push `ams` upward,
-increasing the predicted productivity. The N-test quantile measures how well the
-model's count distribution contains the observed count.
+As additional aftershock data are included, the fitted ETAS parameters move between
+distinct regimes rather than converging monotonically. The N-test quantiles show
+how each regime's count distribution compares with the same observed target catalog.
 
-### Comparison caveat
+### Comparison strength
 
-The forecast windows are not identical across experiments — longer data windows
-mean shorter remaining forecast windows, and fewer observed events to predict.
-The 7-day reference model forecasts a quieter period (days 7–14) than the
-early-window models (which must predict the Omori peak). This is an intrinsically
-harder problem for the early-window models even if `ams` converges correctly.
+Because all runs verify the same days 7–14 target, differences in N-test behavior
+are directly attributable to issue-time-dependent fitting choices and resulting
+forecast distributions, not to different verification horizons.
 
 ---
 

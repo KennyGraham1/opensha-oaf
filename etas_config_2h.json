@@ -8,8 +8,8 @@
     },
 
     "forecastWindow": {
-        "minDays": 0.08333,
-        "maxDays": 14.5
+        "minDays": 7.0,
+        "maxDays": 14.0
     },
 
     "region": {
@@ -54,7 +54,7 @@
         "nSims": 1000,
         "maxGenerations": 10,
         "maxMag": 9.5,
-        "timeDependentMc": false,
+        "timeDependentMc": true,
         "fitMSProductivity": true,
         "forecastModel": "sequence-specific",
         "seed": 12345
@@ -71,7 +71,7 @@
         "scale": 5.0,
         "stressDrop": 3.0,
         "fitType": "aftershocks",
-        "plotDuration": 14.0,
+        "plotDuration": 7.0,
         "outputCsvFile": "spatial_rate_map_2h.csv",
         "outputKmlFile": "spatial_rate_map_2h.kml"
     }
