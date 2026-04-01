@@ -1,6 +1,6 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[12pt,letterpaper]{article}
 
-\usepackage[margin=2.5cm]{geometry}
+\usepackage[margin=1in]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
@@ -8,9 +8,13 @@
 \usepackage{array}
 \usepackage{graphicx}
 \usepackage{subcaption}
+\usepackage[round,authoryear]{natbib}
 \usepackage{hyperref}
 \usepackage{xcolor}
 \usepackage{parskip}
+\usepackage{setspace}
+\usepackage[left]{lineno}
+\usepackage{titlesec}
 
 \hypersetup{
     colorlinks=true,
@@ -35,43 +39,37 @@
 \author{NZ ETAS Pipeline}
 \date{\today}
 
+\titleformat{\section}{\normalfont\large\bfseries}{}{0pt}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{}{0pt}{}
+\setcitestyle{authoryear,round}
+
 \begin{document}
 \maketitle
+\doublespacing
+\linenumbers
 
 \begin{abstract}
-We evaluate issue-time sensitivity of NZ operational ETAS forecasts for the
-2016 $M_w$ 7.8 Kaik\={o}ura sequence using a fixed-horizon design in which all
-eight forecasts verify the same post-mainshock window (days 7--14,
-$N_{\mathrm{obs}}=323$, $M\geq\Mc=3.0$), while only the amount of early
-post-mainshock data used for MLE fitting varies: a generic-parameter run plus
-sequence-specific fits at 2~h, 6~h, 12~h, 1~d, 2~d, 3~d, and 7~d.
-Each run contains 1000 stochastic catalogs and is evaluated with pyCSEP
-catalog-based tests against a common GeoNet observed catalog.
-The analysis reveals \textbf{three distinct failure regimes} whose separation
-is only possible under a fixed verification horizon.
-(1)~\emph{STAI and branching-identifiability failure} (generic and 2~h--1~d):
-the MLE converges to a near-zero-cascade local minimum (indirect triggering
-2--9\%; correct value $\approx33\%$); simulation medians are 45--103 events
-(observed: 323; ratios 0.14--0.32); all N-tests fail by severe underprediction.
-Critically, the analytical expectation $E[N]$ diverges enormously from the
-simulation median for these runs---up to a factor of 20 for the 12~h and 1~d
-windows---signalling near-supercritical ETAS dynamics in the tail of the
-branching distribution.
-(2)~\emph{Omori decay failure} (2~d--3~d): the MLE correctly identifies the
-cascading regime (indirect triggering $\approx31\%$) but fits $p=0.90$ instead
-of the true $p=1.10$, causing days 7--14 to be systematically overpredicted
-(medians 492--499, ratios 1.52--1.55; N-tests fail by overprediction).
-(3)~\emph{Calibrated} (7~d only): median 334 versus observed 323 (ratio 1.03),
-N-test passes comfortably, and rolling Kolmogorov--Smirnov $p=0.98$.
-Across all eight experiments, resampled magnitude tests and marginal
-log-likelihood tests pass universally, confirming that the Gutenberg--Richter
-magnitude distribution is well-captured regardless of issue time.
-Spatial support remains incomplete in all runs (16--25 observed events in
-zero-rate cells), indicating a persistent kernel-support limitation orthogonal
-to the count-calibration question.
-We propose two distinct identifiability barriers---a branching barrier crossed
-near 2~d and an Omori barrier crossed near 7~d---and argue that Bayesian
-hierarchical priors on the Omori $p$-value would be the highest-leverage
+We evaluate issue-time sensitivity of operational New Zealand ETAS forecasts
+for the 2016 $M_w$~7.8 Kaik\={o}ura sequence using a fixed-horizon experiment:
+all eight forecasts verify the same post-mainshock window (days 7--14,
+$N_{\mathrm{obs}}=323$, $M\geq\Mc=3.0$), while only the fit-data window varies
+(generic-parameter run plus sequence-specific fits at 2~h, 6~h, 12~h, 1~d,
+2~d, 3~d, and 7~d). Each run contains 1000 stochastic catalogs and is evaluated
+with pyCSEP catalog-based tests against a common GeoNet observed catalog.
+Results separate into three regimes: (1) generic/2~h--1~d runs underpredict
+severely (medians 45--103; ratios 0.14--0.32) and converge to a low-cascade
+solution (indirect triggering 2--9\%); (2) 2~d--3~d runs recover branching
+(\(\sim\)31\% indirect triggering) but overpredict counts (medians 492--499;
+ratios 1.52--1.55) because fitted Omori $p$ remains too low ($p=0.90$);
+(3) the 7~d run is weekly calibrated (median 334; ratio 1.03; rolling
+Kolmogorov--Smirnov $p=0.98$). A new daily-bin decomposition shows that
+pre-7~d runs are one-sided in every day bin, whereas the 7~d weekly success is
+produced by mixed-sign daily error compensation. Magnitude tests (resampled
+M-test and marginal log-likelihood) pass for all issue times, indicating stable
+Gutenberg--Richter behavior. Spatial support remains incomplete in all runs
+(16--25 observed events in zero-rate cells). We identify a branching
+identifiability barrier near 2~d and an Omori identifiability barrier near 7~d,
+and propose Bayesian hierarchical priors on $p$ as the highest-leverage
 improvement for the 2~d--3~d regime.
 \end{abstract}
 
@@ -85,10 +83,9 @@ question is not only whether a model is good, but whether it becomes useful
 quickly enough after a large mainshock to support decisions in the first hours
 to days. Modern operational systems therefore do not wait a week before issuing
 aftershock forecasts. USGS OAF begins automatic updates within minutes and then
-reissues through the first hours and days \cite{usgs_schedule,usgs_overview}.
-The official USGS background documentation makes clear that this operational
-workflow spans both Reasenberg--Jones and ETAS-style public forecasts
-\cite{usgs_background}.
+reissues through the first hours and days (USGS operational pages listed in
+Data and Resources). The public OAF framework spans both Reasenberg--Jones and
+ETAS-style forecasts \cite{reasenberg1989,puertorico2022}.
 Prospective CSEP experiments have similarly emphasized short-horizon,
 rolling forecasts rather than a single retrospective fit \cite{zhuang2011,
 csep_etas}.
@@ -195,35 +192,118 @@ Generic prior (no MLE) & 0.0--0.5 d & 7.0--14.0 d & 7.0 d & -- & Generic paramet
 
 \section{Methods}
 
-\subsection{ETAS implementation}
+\subsection{ETAS mathematical formulation}
 
-The ETAS implementation uses New Zealand generic prior parameters with
-$\bar{a}=-2.423$, $\bar{p}=1.08$, $\bar{c}=0.01$~d, $\alpha=1$, $b=1$, and
-$M_{\mathrm{ref}}=4.5$. Sequence-specific runs perform MLE over
-$a_{ms}$, $a$, $p$, and $c$ using the issue-time-specific aftershock list.
-The model class is the standard Ogata ETAS family in which each event can
-generate offspring that contribute to the future cascade \cite{ogata1988}.
-All runs produce 1000 stochastic catalogs with a maximum of 10 generations and
-$M_{\max}=9.5$.
+We use a standard ETAS point-process formulation \cite{ogata1988}. Let
+$\mathcal{H}_t$ denote the event history up to time $t$. The conditional
+space--time--magnitude intensity can be written as
+\begin{equation}
+\lambda(t,\mathbf{x},m \mid \mathcal{H}_t) =
+\mu(\mathbf{x}) f_M(m) +
+\sum_{i:t_i<t} \kappa_i \, g(t-t_i; p,c)\, s(\mathbf{x}-\mathbf{x}_i; m_i)\, f_M(m),
+\label{eq:etas_intensity}
+\end{equation}
+where $\mu(\mathbf{x})$ is background spatial rate, $f_M(m)$ is the magnitude
+density, $g(\tau;p,c)$ is the Omori temporal kernel, and $s(\cdot)$ is the
+spatial triggering kernel.
 
-The fixed-horizon design means that each run's MLE is computed over a different
-amount of data, but every resulting parameter set is then used to generate
-simulations evaluated against the same observed catalog. This makes N-test and
-rolling calibration results directly comparable across all eight issue times.
+Magnitudes follow a truncated Gutenberg--Richter form
+\begin{equation}
+f_M(m)=\beta \exp\!\left[-\beta (m-\Mc)\right], \qquad
+\beta = b \ln 10,\quad m\in[\Mc,M_{\max}],
+\label{eq:gr_density}
+\end{equation}
+with $\Mc=3.0$, $b=1.0$, and $M_{\max}=9.5$.
 
-The \texttt{timeDependentMc} setting is enabled for the 2~h--1~d branch,
-causing the MLE to down-weight catalog intervals where detection is estimated
-to be incomplete. While this is necessary to prevent STAI from biasing the
-parameter estimates, it does not guarantee parameter convergence: the key
-question---addressed in Section~\ref{sec:params}---is whether the available
-data are sufficient to identify the branching and decay structure of the
-sequence, not merely to mitigate missing events.
+Productivity is parameterized as
+\begin{equation}
+\kappa_i=
+\begin{cases}
+10^{a_{ms}+\alpha(m_i-M_{\mathrm{ref}})}, & \text{mainshock seed},\\[2pt]
+10^{a+\alpha(m_i-M_{\mathrm{ref}})},      & \text{other triggering events},
+\end{cases}
+\label{eq:productivity}
+\end{equation}
+with $\alpha=1$ and $M_{\mathrm{ref}}=4.5$, and
+\begin{equation}
+g(\tau;p,c)\propto (\tau+c)^{-p}, \qquad \tau>0,\; c>0,\; p>0.
+\label{eq:omori_kernel}
+\end{equation}
+
+The expected count in window
+$[t_s,t_e]\times R\times[\Mc,M_{\max}]$ is
+\begin{equation}
+\hat N_{[t_s,t_e]} =
+\int_{t_s}^{t_e}\!\!\int_R\!\!\int_{\Mc}^{M_{\max}}
+\lambda(t,\mathbf{x},m \mid \mathcal{H}_t)\,dm\,d\mathbf{x}\,dt.
+\label{eq:expected_count}
+\end{equation}
+To track cascade stability in each fitted regime, we use an average branching
+ratio diagnostic
+\begin{equation}
+\bar n =
+\int_{\Mc}^{M_{\max}}
+\kappa(m)\left[\int_0^\infty g(\tau;p,c)\,d\tau\right]f_M(m)\,dm,
+\label{eq:branching_ratio}
+\end{equation}
+where $\kappa(m)=10^{a+\alpha(m-M_{\mathrm{ref}})}$ for non-mainshock
+triggering events. We also report simulation-based indirect triggering share
+\begin{equation}
+\phi_{\mathrm{ind}} =
+100\times\frac{N_{\mathrm{tot}}-N_{\mathrm{direct}}}{N_{\mathrm{tot}}},
+\label{eq:indirect_share}
+\end{equation}
+with $N_{\mathrm{direct}}$ denoting events in generation 1
+(directly triggered by the mainshock seed).
+
+\subsection{Likelihood and parameter estimation}
+
+For each issue time, sequence-specific runs estimate
+$\theta=(a_{ms},a,p,c)$ by maximizing a completeness-weighted log-likelihood
+over the training window:
+\begin{equation}
+\ell(\theta)=
+\sum_{j=1}^{N_{\mathrm{train}}}
+w_j \log \lambda(t_j,\mathbf{x}_j,m_j \mid \mathcal{H}_{t_j};\theta)
+-\int_{T_0}^{T_1}\!\!\int_R\!\!\int_{\Mc}^{M_{\max}}
+\lambda(t,\mathbf{x},m \mid \mathcal{H}_t;\theta)\,dm\,d\mathbf{x}\,dt.
+\label{eq:weighted_ll}
+\end{equation}
+When \texttt{timeDependentMc=true}, the weights $w_j$ adjust for transient
+completeness; when \texttt{false}, $w_j=1$.
+
+The optimizer is a discrete grid search (from archived configuration):
+\begin{equation}
+a_{ms}\in[-4,1]\;(21),\quad
+a\in[-3.5,-0.5]\;(21),\quad
+p\in[0.5,2.0]\;(16),\quad
+c\in[10^{-4},10^{-1}]\;(16),
+\label{eq:grid_ranges}
+\end{equation}
+where parentheses denote grid-node counts. This finite grid is relevant for
+interpretation: adjacent issue times can return identical parameter vectors if
+the likelihood maximum remains on the same node.
+
+\subsection{Stochastic forecast generation}
+
+For each fitted parameter set, 1000 synthetic catalogs are generated via a
+branching simulation:
+\begin{enumerate}
+    \item initialize parent events from fitted history and mainshock seed;
+    \item sample offspring counts from Poisson rates implied by
+          Equations~\ref{eq:etas_intensity}--\ref{eq:omori_kernel};
+    \item sample offspring times from the Omori kernel, magnitudes from
+          Equation~\ref{eq:gr_density}, and locations from the spatial kernel;
+    \item recurse until generation limit (10) or extinction.
+\end{enumerate}
+Catalogs are truncated to $M\ge\Mc$ and evaluated in the NZ testing region over
+the fixed forecast window (days 7.0--14.0).
 
 \subsection{pyCSEP evaluation}
 
 We evaluate each forecast using pyCSEP catalog-based tests against a GeoNet
 observed catalog matched to the forecast time window and the NZ CSEP testing
-region \cite{pycsep_eval,pycsep_catalog_tutorial}. The primary metrics used in
+region (pyCSEP documentation links in Data and Resources). The primary metrics used in
 this manuscript are:
 
 \begin{itemize}
@@ -241,8 +321,140 @@ this manuscript are:
           \texttt{status=undersampled} reports;
     \item rolling number consistency (rolling KS test $p$-value), which
           assesses whether the temporal allocation of events within the
-          7--14~d window is calibrated.
+          7--14~d window is calibrated;
+    \item daily empirical CDF-at-observed diagnostics
+          ($\hat{F}_d(N_{\mathrm{obs},d})$ for each day bin $d$), a PIT-like
+          calibration diagnostic computed from the full ensemble of simulated
+          daily counts.
 \end{itemize}
+
+Let $\{N_k\}_{k=1}^K$ denote simulated weekly counts ($K=1000$) and
+$N_{\mathrm{obs}}$ the observed weekly count. The empirical N-test quantiles
+are
+\begin{equation}
+\delta_1 = \frac{1}{K}\sum_{k=1}^K \mathbf{1}[N_k \le N_{\mathrm{obs}}],
+\qquad
+\delta_2 = \frac{1}{K}\sum_{k=1}^K \mathbf{1}[N_k \ge N_{\mathrm{obs}}],
+\label{eq:n_test}
+\end{equation}
+with two-tailed consistency threshold $\min(\delta_1,\delta_2)>0.025$.
+
+For magnitude consistency, let $p^{\mathrm{obs}}_j$ and $p^{\mathrm{sim}}_j$
+be observed and simulated probabilities in magnitude bin $j$. The pyCSEP
+M-test uses the total-variation statistic
+\begin{equation}
+T_M = \frac{1}{2}\sum_{j}\left|p^{\mathrm{obs}}_j-p^{\mathrm{sim}}_j\right|,
+\label{eq:mtest_tv}
+\end{equation}
+and reports the observed statistic quantile relative to the ensemble. The
+resampled M-test applies the same statistic after subsampling each synthetic
+catalog to $N_{\mathrm{obs}}$, removing first-order count effects. The MLL
+test uses
+\begin{equation}
+\mathrm{MLL} = \sum_j n^{\mathrm{obs}}_j \log p^{\mathrm{sim}}_j,
+\label{eq:mll}
+\end{equation}
+with quantile evaluated against synthetic-catalog MLL values.
+These statistics follow catalog-based consistency-test practice
+\cite{savran2020}.
+
+For daily bins $d\in\{7\!-\!8,\ldots,13\!-\!14\}$ and simulated counts
+$N_{k,d}$, the PIT-like diagnostic is
+\begin{equation}
+\hat F_d(N_{\mathrm{obs},d})=
+\frac{1}{K}\sum_{k=1}^K \mathbf{1}[N_{k,d}\le N_{\mathrm{obs},d}],
+\label{eq:daily_pit}
+\end{equation}
+and the standardized daily residual is
+\begin{equation}
+Z_d=\frac{N_{\mathrm{obs},d}-\bar N_d}{s_d},
+\qquad
+\bar N_d=\frac{1}{K}\sum_{k=1}^K N_{k,d},
+\qquad
+s_d^2=\frac{1}{K-1}\sum_{k=1}^K (N_{k,d}-\bar N_d)^2.
+\label{eq:daily_z}
+\end{equation}
+
+Because spatial and pseudolikelihood tests are frequently
+\texttt{status=undersampled}, we report support-failure counts explicitly.
+Let $R_0=\{\text{cells with forecast rate }0\}$. Then
+\begin{equation}
+n^{(S)}_0 = \sum_{c\in R_0} N_{\mathrm{obs}}(c),
+\label{eq:zero_spatial}
+\end{equation}
+and in space--magnitude bins $b$ with zero forecast rate $\Lambda_b$,
+\begin{equation}
+n^{(SM)}_0 = \sum_{b:\Lambda_b=0} N_{\mathrm{obs}}(b).
+\label{eq:zero_spacemag}
+\end{equation}
+These are interpreted as primary support diagnostics.
+
+These distribution-based diagnostics are motivated by prior ETAS forecast
+distribution work showing that mean behavior alone is insufficient and that
+full predictive distributions can be strongly overdispersed
+\cite{harte2017dist,helmstetter2003,zhuang2013critical,savran2020}.
+
+\subsection{Paired benchmark comparison tests}
+
+To compare ETAS skill against a benchmark forecast on the same space--time--
+magnitude grid, we use pyCSEP paired T- and W-tests based on event-wise
+information gain per observed event \cite{savran2020}. Let
+$\Lambda_A=\sum_b \lambda_A(b)$ and $\Lambda_B=\sum_b \lambda_B(b)$ be total
+forecast rates over bins $b$, and let $b_i$ be the bin of observed event $i$.
+For bins with nonzero support in both forecasts, per-event information gain is
+\begin{equation}
+IG_i = \log \lambda_A(b_i) - \log \lambda_B(b_i),
+\label{eq:ig_event}
+\end{equation}
+and the normalized mean information gain is
+\begin{equation}
+\overline{IG}=
+\frac{1}{N^*}\left(\sum_{i=1}^{N^*} IG_i - (\Lambda_A-\Lambda_B)\right),
+\label{eq:ig_mean}
+\end{equation}
+where $N^*$ is the number of observed events retained after support filtering.
+When events fall in zero-rate bins for either forecast, pyCSEP reports an
+undersampled condition and recomputes on the retained set.
+
+The paired T-test statistic is
+\begin{equation}
+T=\frac{\overline{IG}}{s_{IG}/\sqrt{N^*}},
+\qquad
+s_{IG}^2=\frac{1}{N^*-1}\sum_{i=1}^{N^*}(IG_i-\overline{IG})^2,
+\label{eq:paired_t}
+\end{equation}
+with two-sided $p$-value from the Student-$t$ distribution. The paired W-test
+applies the Wilcoxon signed-rank statistic to $\{IG_i\}$ as a nonparametric
+robustness check against non-Gaussian tails. In this manuscript, we interpret
+both tests jointly: T-test for mean information-gain effect size and W-test for
+sign consistency under weaker distributional assumptions.
+
+\subsection{Reproducible workflow}
+
+The full analysis is reproduced in three stages:
+\begin{enumerate}
+    \item run ETAS simulations from each issue-time configuration with fixed
+          verification window definitions (\texttt{etas\_config\_*.json});
+    \item run per-experiment pyCSEP evaluation and export JSON/figure products
+          (\texttt{scripts/python/visualize\_nz\_etas\_with\_pycsep.py});
+    \item aggregate cross-experiment metrics into publication tables and
+          comparison figures
+          (\texttt{scripts/python/compare\_etas\_experiments.py});
+    \item build manuscript-quality diagnostic panels and CSV summaries
+          (\texttt{scripts/python/build\_publication\_figures.py}).
+\end{enumerate}
+
+Representative commands are:
+\begin{verbatim}
+python3 scripts/python/visualize_nz_etas_with_pycsep.py
+python3 scripts/python/compare_etas_experiments.py
+python3 scripts/python/build_publication_figures.py
+\end{verbatim}
+
+Primary machine-readable outputs used in this manuscript are:
+\texttt{build/pycsep/evaluation\_json/*.json},
+\texttt{build/comparison/publication\_regime\_metrics.csv}, and
+\texttt{build/comparison/publication\_daily\_metrics.csv}.
 
 \section{Results}
 
@@ -390,7 +602,10 @@ row: pyCSEP summary statistics, rolling calibration, indirect triggering share,
 and empirical N-test distributions. All runs verify the same days 7--14 window;
 only the fit-data window changes. The leftmost point is the generic-parameter
 ETAS run conditioned on the first 0.5~d catalog. The dashed horizontal line in
-the count panel marks $N_{\mathrm{obs}}=323$.}
+the count panel marks $N_{\mathrm{obs}}=323$.
+\textit{Alt-text: Issue-time progression of ETAS parameters and forecast skill,
+showing strong underprediction at 2~h--1~d, overprediction at 2~d--3~d, and
+near-calibration at 7~d.}}
 \label{fig:comparison}
 \end{figure}
 
@@ -427,7 +642,7 @@ operational upgrade effort should therefore prioritize count calibration
 (the branching and Omori barriers described above) rather than magnitude
 recalibration.
 
-\subsection{Near-supercritical tail behavior: analytical expectation versus simulation median}
+\subsection{Analytical expected-count inconsistency: $E[N]$ versus simulation ensembles}
 \label{sec:tails}
 
 A critical and novel finding of this experiment is the large divergence between
@@ -466,30 +681,99 @@ summary file.
 For the 6~h run, $E[N]=432$ while the simulation median is 87, a factor of
 5.0. For 12~h and 1~d, $E[N]$ is approximately 921 and 929, respectively,
 while the simulation medians are 87 and 94---divergence factors of 10--11.
-This is not a software error but a signature of \emph{near-supercritical ETAS
-dynamics}: when the branching ratio approaches unity, the distribution of
-total event counts becomes extremely right-skewed. The vast majority of
-realizations produce only modest cascades (contributing to the low median), but
-a small fraction of simulations produce explosive cascades that dominate the
-mean and drive $E[N]$ far above the median.
-
-For these early-window parameter sets, the branching ratio in the upper tail is
-at or above the critical value of one. This means that the analytical $E[N]$,
-computed from the first moment of the branching process, is not a robust
-forecast summary: a single catastrophic realization can inflate it by an order
-of magnitude above the typical outcome. The pyCSEP simulation \emph{median} is
-the operationally safe summary because it is robust to these tail events.
+Crucially, this mismatch is not limited to medians: the empirical means from
+the pyCSEP count distributions remain close to the medians (e.g., 12~h:
+mean 48.3, median 45), yet both are far below $E[N]$. This indicates that the
+discrepancy is not explained by heavy-tail sampling in the available
+simulations and is more plausibly an inconsistency between analytical and
+stochastic pathways (e.g., scaling, filtering, or normalization mismatch).
 
 The contrast with the 2~d--7~d runs is instructive: there, $E[N]$ and the
-simulation median are close (ratio 0.78--0.82), consistent with a subcritical
-process well below the branching instability.
+empirical simulation means are of comparable order (ratio $\sim0.76$--0.83),
+while early-window runs show extreme ratios up to $\sim19$.
 
 \textbf{Operational warning}: for the early issue-time regime (2~h--1~d),
 reporting $E[N]$ from the ETAS summary file as the forecast rate estimate would
 be catastrophically misleading---producing apparent rates of 252--929 events
-against a typical simulated catalog of 45--94 events. The median of the
-stochastic ensemble is the only defensible operational summary statistic in
-this regime.
+against a typical simulated catalog of 45--94 events. Until this inconsistency
+is resolved, operational summaries should rely on empirical simulation
+distributions (median and central intervals) rather than analytical $E[N]$.
+
+\subsection{Integrated diagnostic synthesis figure}
+\label{sec:diagfig}
+
+Figure~\ref{fig:regime_synthesis} consolidates six high-value diagnostics in a
+single panel set designed for manuscript interpretation and review:
+(A) empirical N-test count distributions, (B) count bias ratios with
+uncertainty, (C) parameter-regime transitions in $p$ and indirect branching,
+(D) spatial-support failures, (E) analytical-versus-empirical consistency, and
+(F) rolling sub-window calibration behavior.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{publication_regime_diagnostics.png}
+\caption{Integrated fixed-horizon diagnostics synthesized from rerun outputs.
+Panel E highlights the expected-count inconsistency: analytical $E[N]$ diverges
+strongly from both empirical means and medians in early windows, whereas 2~d--7~d
+runs show substantially better consistency. Panel F summarizes within-horizon
+rolling calibration behavior: only the 7~d run reaches strong calibration
+($p=0.98$). Figure generated by
+\texttt{scripts/python/build\_publication\_figures.py}.
+\textit{Alt-text: Six-panel diagnostic synthesis combining count distributions,
+count bias, parameter-regime transitions, spatial support failures,
+expected-count consistency checks, and rolling calibration by issue time.}}
+\label{fig:regime_synthesis}
+\end{figure}
+
+\subsection{Novel finding: aggregate calibration at 7~d is achieved by daily error compensation}
+\label{sec:daily_comp}
+
+Using the full 1000-catalog ensembles, we decomposed the fixed-horizon
+forecast into seven daily bins (7--8, \ldots, 13--14~d) and computed a PIT-like
+diagnostic $\hat{F}_d(N_{\mathrm{obs},d})=\Pr(N_{\mathrm{sim},d}\leq
+N_{\mathrm{obs},d})$ per day and issue time
+(Figure~\ref{fig:daily_decomposition}).
+
+This reveals a stronger and more specific regime structure than weekly totals
+alone:
+\begin{enumerate}
+    \item \textbf{Regime~1 (generic and 2~h--1~d) is one-sided underprediction
+    in every daily bin.} For the 2~h--1~d branch, all 28 daily bins have
+    $\hat{F}_d \ge 0.993$ (mean 0.998), and standardized residuals are strongly
+    positive throughout (typical $Z>+3$, often $>+7$). There are no daily sign
+    flips in residuals.
+
+    \item \textbf{Regime~2 (2~d--3~d) is one-sided overprediction in every daily
+    bin.} Across these 14 daily bins, $\hat{F}_d$ lies in [0.001, 0.144]
+    (mean 0.038), with 10/14 bins at $\hat{F}_d \le 0.05$. Residual signs are
+    uniformly positive in forecast-minus-observed space (no sign flips).
+
+    \item \textbf{Regime~3 (7~d) is mixed-sign daily behavior with compensation.}
+    The 7~d run has $\hat{F}_d$ spanning 0.033--0.801 and two daily sign flips.
+    Its weekly total is near-calibrated because overprediction in some bins
+    (e.g., day 10--11) is compensated by underprediction in others
+    (e.g., days 8--9 and 13--14), not because each day is individually perfect.
+\end{enumerate}
+
+This compensation mechanism is a novel operational finding: weekly N-test
+success can mask substantial intra-week allocation errors, so daily
+distribution diagnostics should be reported alongside weekly consistency tests.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{publication_daily_decomposition.png}
+\caption{Daily decomposition of fixed-horizon skill (days 7--14). Panel A shows
+observed versus simulated daily medians; Panel B shows standardized residuals;
+Panel C shows PIT-like empirical CDF at observed for each daily bin and issue
+time; Panel D summarizes daily accuracy (MAE) and sharpness (10--90 width).
+Only the 7~d run exhibits mixed-sign residuals; all earlier runs are one-sided
+across all daily bins. Figure generated by
+\texttt{scripts/python/build\_publication\_figures.py}.
+\textit{Alt-text: Daily-bin decomposition showing one-sided underprediction for
+2~h--1~d runs, one-sided overprediction for 2~d--3~d runs, and compensated
+mixed-sign daily errors for the 7~d run.}}
+\label{fig:daily_decomposition}
+\end{figure}
 
 \subsection{Spatial support diagnostics}
 \label{sec:spatial}
@@ -612,26 +896,24 @@ requires observing the temporal slope over an extended window, but it could be
 addressed by a tight Bayesian prior on $p$ derived from regional or global
 aftershock statistics.
 
-\subsection{Near-supercritical behavior and the danger of reporting $E[N]$}
+\subsection{Expected-count consistency and the danger of reporting unresolved $E[N]$}
 
 The divergence between $E[N]$ and simulation medians in the early-window runs
 is a practically important finding. For the 12~h and 1~d parameter sets, the
-analytical expectation exceeds the simulation median by factors of about 10.
-This arises because the MLE solution, while not explicitly supercritical (the
-branching ratio is below one in expectation), has a heavy-tailed distribution
-of total offspring counts. A small fraction of simulations undergo near-critical
-cascades that inflate the mean without raising the typical (median) outcome.
+analytical expectation exceeds both empirical medians and empirical means by
+about one order of magnitude. The synthesis diagnostics (Section~\ref{sec:diagfig})
+show this is not a median-only artifact, so it should be treated as an
+analytical-versus-stochastic inconsistency requiring dedicated QC.
 
 In operational practice, the mean $E[N]$ is the quantity most naturally
 associated with the first-moment prediction of a point process, and it may be
 the quantity displayed to emergency managers or communicated to the public. For
-well-calibrated subcritical ETAS (as in the 7~d run), $E[N]$ and the median
-are close and either is an acceptable summary. But for early issue times in
-sequences like Kaik\={o}ura, reporting $E[N]$ as the ``expected'' aftershock
-count could overstate the forecast by an order of magnitude relative to the
-most likely outcome. Operational protocols should explicitly require reporting
-the \emph{median} of the stochastic ensemble alongside any mean estimate, and
-should flag large $E[N]$-to-median ratios as a near-supercritical warning.
+better-behaved runs (2~d--7~d), $E[N]$ and empirical summaries are broadly
+consistent and either may be acceptable. But for early issue times in this
+sequence, reporting unresolved analytical $E[N]$ values would overstate the
+forecast by large factors. Operational protocols should require empirical
+ensemble summaries (median and central intervals) whenever analytical
+consistency checks fail.
 
 \subsection{Bayesian priors on $p$ as the highest-leverage improvement for Regime~2}
 
@@ -665,10 +947,12 @@ by both early catalog limitations and evolving event metadata \cite{harte2019}.
 
 The archived NZ results fit that pattern but add two specific new observations.
 First, the branching/Omori barrier distinction is more cleanly visible here than
-in previous analyses because of the fixed-horizon design. Second, the
-near-supercritical tail behavior and $E[N]$-versus-median divergence have not
-previously been reported as a distinct operational concern for early ETAS
-forecasts, to our knowledge.
+in previous analyses because of the fixed-horizon design. Second, the explicit
+analytical-versus-stochastic expected-count inconsistency check provides a
+practical QC criterion for early operational ETAS products. Third, the daily
+decomposition (Section~\ref{sec:daily_comp}) shows that weekly calibration can
+arise from compensation of opposite-sign daily errors, a point aligned with
+distribution-focused ETAS forecast studies \cite{harte2017dist,savran2020}.
 
 The persistent spatial support limitation (16--25 observed events in zero-rate
 cells across all runs) is consistent with the broader observation in aftershock
@@ -707,15 +991,14 @@ sequence produces the following principal conclusions.
     \item \textbf{Regime~3} (7~d only): both the branching structure and the
     Omori decay rate are correctly identified. The forecast is count-calibrated
     (median 334, ratio 1.03; N-test $(\delta_1,\delta_2)=(0.594,0.411)$) and
-    temporally calibrated (rolling KS $p=0.98$).
+    temporally calibrated in aggregate (rolling KS $p=0.98$), but daily-bin
+    diagnostics show mixed-sign residuals and compensation.
 
-    \item The analytical expected count $E[N]$ diverges from the simulation
-    median by factors of 5--11 for the 12~h and 1~d runs, a signature of
-    \textbf{near-supercritical ETAS dynamics} in the tail of the branching
-    distribution. Reporting $E[N]$ as the operational forecast rate for these
-    issue times would overstate the typical outcome by an order of magnitude.
-    The simulation median is the only defensible operational summary statistic
-    in this regime.
+    \item Analytical expected counts $E[N]$ diverge strongly from empirical
+    simulation summaries in early windows (up to factors of $\sim$19 versus
+    pyCSEP empirical means), indicating an unresolved expected-count consistency
+    problem. Until resolved, operational communication should use empirical
+    ensemble summaries rather than analytical $E[N]$ for 2~h--1~d issue times.
 
     \item Magnitude--frequency consistency (resampled M-test and MLL) is
     maintained \textbf{across all eight issue times}, with no significant
@@ -744,66 +1027,122 @@ The results summarized here were taken from the archived ETAS summary files
 \texttt{nz\_etas\_simulations*.txt} and the pyCSEP output directories
 \texttt{build/pycsep*} in this repository. GeoNet event metadata and observed
 catalogs were accessed through the GeoNet event and catalog services during the
-archived runs. pyCSEP documentation and catalog-evaluation concepts were taken
-from the official documentation site \cite{pycsep_eval,pycsep_catalog_tutorial}.
+archived runs. Additional publication diagnostics were generated into
+\texttt{build/comparison/publication\_*.png} and
+\texttt{build/comparison/publication\_*.csv} using
+\texttt{scripts/python/build\_publication\_figures.py}. pyCSEP documentation
+and catalog-evaluation concepts were taken from the official documentation site
+\cite{savran2020}. External URLs consulted in this study (all accessed on
+1~April~2026) are:
+\url{https://quakesearch.geonet.org.nz/},
+\url{https://wfs.geonet.org.nz/geonet/ows},
+\url{https://earthquake.usgs.gov/data/oaf/schedule.php},
+\url{https://earthquake.usgs.gov/data/oaf/overview.php},
+\url{https://earthquake.usgs.gov/data/oaf/background.php},
+\url{https://docs.cseptesting.org/concepts/evaluations.html}, and
+\url{https://docs.cseptesting.org/tutorials/catalog_forecast_evaluation.html}.
+
+\section*{Declaration of Competing Interests}
+
+The authors declare that they have no known competing financial interests or
+personal relationships that could have appeared to influence the work reported
+in this manuscript.
+
+\section*{Acknowledgments}
+
+We acknowledge GeoNet for seismic data services and the pyCSEP developers for
+catalog-based evaluation tools used in this study. We also acknowledge
+discussions within the NZ ETAS development workflow that informed experiment
+design and interpretation.
 
 \newpage
 \begin{thebibliography}{99}
 
-\bibitem{usgs_schedule}
-U.S. Geological Survey (USGS), \emph{Operational Aftershock Forecast:
-Automatic Forecast Update Schedule}.\\
-\url{https://earthquake.usgs.gov/data/oaf/schedule.php}
+\bibitem[Collaboratory for the Study of Earthquake Predictability(n.d.)]{csep_etas}
+Collaboratory for the Study of Earthquake Predictability (CSEP),
+\emph{ETAS and ETASV1.1 models}.\\
+\url{https://cseptesting.org/etas-model/}
 
-\bibitem{usgs_overview}
-U.S. Geological Survey (USGS), \emph{Operational Aftershock Forecast:
-Overview}.\\
-\url{https://earthquake.usgs.gov/data/oaf/overview.php}
+\bibitem[Hainzl et~al.(2024)]{hainzl2024}
+S. Hainzl, T. Kumazawa, and Y. Ogata (2024),
+\emph{Aftershock forecasts based on incomplete earthquake catalogues:
+ETASI model application to the 2023 SE T\"urkiye earthquake sequence},
+Geophysical Journal International, 236(3), 1609--1619.\\
+\url{https://doi.org/10.1093/gji/ggae006}
 
-\bibitem{usgs_background}
-U.S. Geological Survey (USGS), \emph{Operational Aftershock Forecast:
-Scientific Background}.\\
-\url{https://earthquake.usgs.gov/data/oaf/background.php}
+\bibitem[Hardebeck et~al.(2024)]{hardebeck2024}
+J. L. Hardebeck, A. L. Llenos, A. J. Michael, M. T. Page, M. Schneider, and
+N. J. van der Elst (2024),
+\emph{Aftershock forecasting},
+Annual Review of Earth and Planetary Sciences, 52, 61--84.\\
+\url{https://doi.org/10.1146/annurev-earth-040522-102129}
 
-\bibitem{reasenberg1989}
-P. Reasenberg and L. Jones (1989),
-\emph{Earthquake hazard after a mainshock in California},
-Science, 243(4895), 1173--1176.\\
-\url{https://doi.org/10.1126/science.243.4895.1173}
+\bibitem[Harte(2017)]{harte2017dist}
+D. Harte (2017),
+\emph{Probability distribution of forecasts based on the epidemic-type
+aftershock sequence model},
+Geophysical Journal International, 210(1), 423--438.\\
+\url{https://doi.org/10.1093/gji/ggx146}
 
-\bibitem{ogata1988}
+\bibitem[Harte(2019)]{harte2019}
+D. Harte (2019),
+\emph{Evaluation of earthquake stochastic models based on their real-time
+forecasts: a case study of Kaik\={o}ura 2016},
+Geophysical Journal International, 217(3), 1894--1913.\\
+\url{https://doi.org/10.1093/gji/ggz088}
+
+\bibitem[Helmstetter and Sornette(2003)]{helmstetter2003}
+A. Helmstetter and D. Sornette (2003),
+\emph{Predictability in the ETAS model of interacting triggered seismicity},
+Geophysical Research Letters, 30(11), 1576.\\
+\url{https://doi.org/10.1029/2003GL017670}
+
+\bibitem[Lippiello et~al.(2019)]{lippiello2019}
+E. Lippiello, F. Petrillo, C. Godano, and L. de Arcangelis (2019),
+\emph{Post Seismic Catalog Incompleteness and Aftershock Forecasting},
+Geosciences, 9(8), 355.\\
+\url{https://doi.org/10.3390/geosciences9080355}
+
+\bibitem[Marzocchi et~al.(2014)]{marzocchi2014}
+W. Marzocchi, A. M. Lombardi, and E. Casarotti (2014),
+\emph{The establishment of an operational earthquake forecasting system in
+Italy},
+Seismological Research Letters, 85(5), 961--969.\\
+\url{https://doi.org/10.1785/0220130219}
+
+\bibitem[Ogata(1988)]{ogata1988}
 Y. Ogata (1988),
 \emph{Statistical Models for Earthquake Occurrences and Residual Analysis for
 Point Processes},
 Journal of the American Statistical Association, 83(401), 9--27.\\
 \url{https://doi.org/10.1080/01621459.1988.10478560}
 
-\bibitem{ogata2006}
+\bibitem[Ogata and Katsura(2006)]{ogata2006}
 Y. Ogata and K. Katsura (2006),
 \emph{Immediate and updated forecasting of aftershock hazard},
 Geophysical Research Letters, 33, L10305.\\
 \url{https://doi.org/10.1029/2006GL025888}
 
-\bibitem{omi2013}
+\bibitem[Omi et~al.(2013)]{omi2013}
 T. Omi, Y. Ogata, Y. Hirata, and K. Aihara (2013),
 \emph{Forecasting large aftershocks within one day after the main shock},
 Scientific Reports, 3, 2218.\\
 \url{https://doi.org/10.1038/srep02218}
 
-\bibitem{omi2014}
+\bibitem[Omi et~al.(2014)]{omi2014}
 T. Omi, Y. Ogata, Y. Hirata, and K. Aihara (2014),
 \emph{Estimating the ETAS model from an early aftershock sequence},
 Geophysical Research Letters, 41(3), 850--857.\\
 \url{https://doi.org/10.1002/2013GL058958}
 
-\bibitem{omi2015}
+\bibitem[Omi et~al.(2015)]{omi2015}
 T. Omi, Y. Ogata, Y. Hirata, and K. Aihara (2015),
 \emph{Intermediate-term forecasting of aftershocks from an early aftershock
 sequence: Bayesian and ensemble forecasting approaches},
 Journal of Geophysical Research: Solid Earth, 120(4), 2561--2571.\\
 \url{https://doi.org/10.1002/2014JB011456}
 
-\bibitem{page2016}
+\bibitem[Page et~al.(2016)]{page2016}
 M. T. Page, N. J. van der Elst, J. L. Hardebeck, K. R. Felzer, and
 A. J. Michael (2016),
 \emph{Three ingredients for improved global aftershock forecasts:
@@ -812,80 +1151,47 @@ intersequence variability},
 Bulletin of the Seismological Society of America, 106(5), 2290--2301.\\
 \url{https://doi.org/10.1785/0120160073}
 
-\bibitem{seif2017}
+\bibitem[Reasenberg and Jones(1989)]{reasenberg1989}
+P. Reasenberg and L. Jones (1989),
+\emph{Earthquake hazard after a mainshock in California},
+Science, 243(4895), 1173--1176.\\
+\url{https://doi.org/10.1126/science.243.4895.1173}
+
+\bibitem[Rhoades et~al.(2017)]{rhoades2017}
+D. Rhoades, M. Gerstenberger, A. Christophersen, and D. Harte (2017),
+\emph{Earthquake forecasts and their applications following the M7.8 2016
+Kaik\={o}ura earthquake}. Southern California Earthquake Center abstract page.\\
+\url{https://central.scec.org/publication/7689}
+
+\bibitem[Savran et~al.(2020)]{savran2020}
+W. H. Savran, M. J. Werner, D. A. Rhoades, J. A. Bayona, and D. R. Baumgardt
+(2020),
+\emph{Catalog-based earthquake forecasts: consistency and comparison tests},
+Bulletin of the Seismological Society of America, 110(5), 2195--2204.\\
+\url{https://doi.org/10.1785/0120200026}
+
+\bibitem[Seif et~al.(2017)]{seif2017}
 S. Seif, M. T. Page, J. E. Zechar, M. E. Morgan, and J. T. McBrearty (2017),
 \emph{Estimating ETAS: The effects of truncation, missing data, and model
 assumptions},
 Journal of Geophysical Research: Solid Earth, 122(6), 4490--4510.\\
 \url{https://doi.org/10.1002/2016JB012809}
 
-\bibitem{woessner2005}
-J. Woessner and S. Wiemer (2005),
-\emph{Assessing the quality of earthquake catalogues: Estimating the
-magnitude of completeness and its uncertainty},
-Bulletin of the Seismological Society of America, 95(2), 684--698.\\
-\url{https://doi.org/10.1785/0120040007}
-
-\bibitem{lippiello2019}
-E. Lippiello, F. Petrillo, C. Godano, and L. de Arcangelis (2019),
-\emph{Post Seismic Catalog Incompleteness and Aftershock Forecasting},
-Geosciences, 9(8), 355.\\
-\url{https://doi.org/10.3390/geosciences9080355}
-
-\bibitem{vandere1st2021}
-N. J. van der Elst (2021),
-\emph{B-positive: A robust estimator of aftershock magnitude distribution in
-transiently incomplete catalogs},
-Journal of Geophysical Research: Solid Earth, 126(2), e2020JB021027.\\
-\url{https://doi.org/10.1029/2020JB021027}
-
-\bibitem{hainzl2024}
-S. Hainzl, T. Kumazawa, and Y. Ogata (2024),
-\emph{Aftershock forecasts based on incomplete earthquake catalogues:
-ETASI model application to the 2023 SE T\"urkiye earthquake sequence},
-Geophysical Journal International, 236(3), 1609--1619.\\
-\url{https://doi.org/10.1093/gji/ggae006}
-
-\bibitem{zhuang2011}
-J. Zhuang (2011),
-\emph{Next-day earthquake forecasts for the Japan region generated by the
-ETAS model},
-Earth, Planets and Space, 63(3), 207--216.\\
-\url{https://doi.org/10.5047/eps.2010.12.010}
-
-\bibitem{csep_etas}
-Collaboratory for the Study of Earthquake Predictability (CSEP),
-\emph{ETAS and ETASV1.1 models}.\\
-\url{https://cseptesting.org/etas-model/}
-
-\bibitem{rhoades2017}
-D. Rhoades, M. Gerstenberger, A. Christophersen, and D. Harte (2017),
-\emph{Earthquake forecasts and their applications following the M7.8 2016
-Kaik\={o}ura earthquake}. Southern California Earthquake Center abstract page.\\
-\url{https://central.scec.org/publication/7689}
-
-\bibitem{harte2019}
-D. Harte (2019),
-\emph{Evaluation of earthquake stochastic models based on their real-time
-forecasts: a case study of Kaik\={o}ura 2016},
-Geophysical Journal International, 217(3), 1894--1913.\\
-\url{https://doi.org/10.1093/gji/ggz088}
-
-\bibitem{marzocchi2014}
-W. Marzocchi, A. M. Lombardi, and E. Casarotti (2014),
-\emph{The establishment of an operational earthquake forecasting system in
-Italy},
-Seismological Research Letters, 85(5), 961--969.\\
-\url{https://doi.org/10.1785/0220130219}
-
-\bibitem{spassiani2023}
+\bibitem[Spassiani et~al.(2023)]{spassiani2023}
 I. Spassiani, G. Falcone, M. Murru, and W. Marzocchi (2023),
 \emph{Operational Earthquake Forecasting in Italy: validation after 10 yr of
 operativity},
 Geophysical Journal International, 234(3), 2501--2518.\\
 \url{https://doi.org/10.1093/gji/ggad256}
 
-\bibitem{puertorico2022}
+\bibitem[van~der~Elst(2021)]{vandere1st2021}
+N. J. van der Elst (2021),
+\emph{B-positive: A robust estimator of aftershock magnitude distribution in
+transiently incomplete catalogs},
+Journal of Geophysical Research: Solid Earth, 126(2), e2020JB021027.\\
+\url{https://doi.org/10.1029/2020JB021027}
+
+\bibitem[van~der~Elst et~al.(2022)]{puertorico2022}
 N. J. van der Elst, J. L. Hardebeck, A. J. Michael, S. K. McBride, and
 E. Vanacore (2022),
 \emph{Prospective and retrospective evaluation of the U.S. Geological Survey
@@ -894,20 +1200,25 @@ Earthquake and aftershocks},
 Seismological Research Letters, 93(2A), 620--640.\\
 \url{https://pubs.usgs.gov/publication/70229086}
 
-\bibitem{hardebeck2024}
-J. L. Hardebeck, A. L. Llenos, A. J. Michael, M. T. Page, M. Schneider, and
-N. J. van der Elst (2024),
-\emph{Aftershock forecasting},
-Annual Review of Earth and Planetary Sciences, 52, 61--84.\\
-\url{https://doi.org/10.1146/annurev-earth-040522-102129}
+\bibitem[Woessner and Wiemer(2005)]{woessner2005}
+J. Woessner and S. Wiemer (2005),
+\emph{Assessing the quality of earthquake catalogues: Estimating the
+magnitude of completeness and its uncertainty},
+Bulletin of the Seismological Society of America, 95(2), 684--698.\\
+\url{https://doi.org/10.1785/0120040007}
 
-\bibitem{pycsep_eval}
-pyCSEP documentation, \emph{Evaluations}.\\
-\url{https://docs.cseptesting.org/concepts/evaluations.html}
+\bibitem[Zhuang(2011)]{zhuang2011}
+J. Zhuang (2011),
+\emph{Next-day earthquake forecasts for the Japan region generated by the
+ETAS model},
+Earth, Planets and Space, 63(3), 207--216.\\
+\url{https://doi.org/10.5047/eps.2010.12.010}
 
-\bibitem{pycsep_catalog_tutorial}
-pyCSEP documentation, \emph{Catalog-based Forecast Evaluation Tutorial}.\\
-\url{https://docs.cseptesting.org/tutorials/catalog_forecast_evaluation.html}
+\bibitem[Zhuang et~al.(2013)]{zhuang2013critical}
+J. Zhuang, M. J. Werner, and D. Harte (2013),
+\emph{Stability analysis of the ETAS model for earthquake occurrences},
+Physical Review E, 88, 062109.\\
+\url{https://doi.org/10.1103/PhysRevE.88.062109}
 
 \end{thebibliography}
 
