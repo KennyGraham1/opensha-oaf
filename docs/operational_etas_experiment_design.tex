@@ -57,20 +57,28 @@ $N_{\mathrm{obs}}=323$, $M\geq\Mc=3.0$), while only the fit-data window varies
 2~d, 3~d, and 7~d). Each run contains 1000 stochastic catalogs and is evaluated
 with pyCSEP catalog-based tests against a common GeoNet observed catalog.
 Results separate into three regimes: (1) generic/2~h--1~d runs underpredict
-severely (medians 45--103; ratios 0.14--0.32) and converge to a low-cascade
+severely (medians 45--86; ratios 0.14--0.27) and converge to a low-cascade
 solution (indirect triggering 2--9\%); (2) 2~d--3~d runs recover branching
-(\(\sim\)31\% indirect triggering) but overpredict counts (medians 492--499;
+($\sim$31\% indirect triggering) but overpredict counts (medians 492--499;
 ratios 1.52--1.55) because fitted Omori $p$ remains too low ($p=0.90$);
-(3) the 7~d run is weekly calibrated (median 334; ratio 1.03; rolling
-Kolmogorov--Smirnov $p=0.98$). A new daily-bin decomposition shows that
-pre-7~d runs are one-sided in every day bin, whereas the 7~d weekly success is
-produced by mixed-sign daily error compensation. Magnitude tests (resampled
-M-test and marginal log-likelihood) pass for all issue times, indicating stable
-Gutenberg--Richter behavior. Spatial support remains incomplete in all runs
-(16--25 observed events in zero-rate cells). We identify a branching
-identifiability barrier near 2~d and an Omori identifiability barrier near 7~d,
-and propose Bayesian hierarchical priors on $p$ as the highest-leverage
-improvement for the 2~d--3~d regime.
+(3) the 7~d run is count- and temporally calibrated (median 334; ratio 1.03;
+rolling Kolmogorov--Smirnov $p=0.98$). A daily-bin decomposition shows
+that pre-7~d runs are uniformly one-sided in every day bin, whereas the 7~d
+weekly success arises from mixed-sign daily error compensation across three
+sign reversals. We further show that all non-calibrated runs exhibit a
+\emph{double failure}: they are simultaneously biased \emph{and} overconfident,
+with 90\% predictive intervals that completely exclude $N_{\mathrm{obs}}=323$.
+Only the 7~d run achieves 100\% coverage at the 90\% level. Magnitude tests
+(resampled M-test and marginal log-likelihood) pass for all issue times, indicating
+stable Gutenberg--Richter behavior decoupled from count skill. Spatial support
+remains incomplete in all runs (16--25 observed events in zero-rate cells).
+We identify a \emph{branching identifiability barrier} near 2~d and an
+\emph{Omori identifiability barrier} near 7~d as two conceptually distinct
+constraints, and propose Bayesian hierarchical priors on $p$ as the
+highest-leverage improvement for the 2~d--3~d overprediction regime.
+Segmented tests provide statistical support for the primary 1~d--2~d transition
+and weaker support for a distinct late-window breakpoint in this single-sequence
+8-point issue-time series.
 \end{abstract}
 
 \textbf{Keywords}: ETAS; operational aftershock forecasting; pyCSEP;
@@ -116,6 +124,140 @@ issue times. Our analysis shows that issue-time effects do not degrade
 monotonically but instead produce three qualitatively distinct regimes, each
 with a different mechanistic explanation. Recognizing these regimes clarifies
 what improvements are most needed and where the leverage is greatest.
+
+\section{Literature Review and Positioning}
+
+\subsection{Operational aftershock forecasting systems}
+
+Operational earthquake forecasting (OEF) systems in the U.S., Italy, and
+New Zealand share a common structure: rapid initial issuance followed by
+frequent updates as sequence-specific information accumulates.
+USGS public aftershock products now operate with ETAS-based workflows and have
+been evaluated both prospectively and retrospectively
+\cite{puertorico2022,page2016}. In California, UCERF3-ETAS demonstrated how
+short-term clustering models can be integrated with long-term fault-based
+hazard components in an operational framework \cite{field2017ucerf3etas}.
+In Italy, OEF development and long-duration validation emphasize repeated
+prospective testing rather than one-off retrospective fits
+\cite{marzocchi2014,spassiani2023}. In New Zealand, Kaik\={o}ura-era aftershock
+products were used directly in agency decision contexts, with documented
+communication and interpretation challenges \cite{becker2020kaikoura}.
+Recent cross-system syntheses now provide a broader benchmark for comparing
+design choices in operational systems and testing pipelines
+\cite{mizrahi2024oefreview,han2025oef,serafini2025benchmark}.
+
+Across these systems, the methodological challenge is consistent:
+\emph{issue-time forecasting} must balance speed and stability. Early forecasts
+are needed operationally, but parameter identifiability and catalog quality are
+least favorable at those times. This motivates explicit issue-time experiments
+instead of only retrospective ``best-fit'' analyses.
+
+\subsection{New Zealand-specific scientific and operational background}
+
+The New Zealand setting is structurally distinct from many single-fault
+aftershock case studies because it straddles an oblique plate-boundary
+transition (Hikurangi subduction to Alpine transform), with strong spatial
+heterogeneity in faulting style and coupling. The 2016 Kaik\={o}ura mainshock
+itself ruptured a complex multi-fault system over $>$170 km
+\cite{hamling2017kaikoura}, which makes issue-time ETAS calibration especially
+sensitive to early catalog quality, spatial kernel assumptions, and
+parameter-identifiability limits.
+
+New Zealand also has a long operational lineage directly relevant to this
+manuscript. The New Zealand CSEP testing center formalized prospective model
+testing workflows and consistency tests for the region
+\cite{gerstenberger2010nztest}. During the Canterbury sequence, hybrid
+time-dependent hazard workflows were deployed and evaluated for decision support
+\cite{gerstenberger2016canterbury}. More recently, national-scale model updates
+in the 2022 Aotearoa NSHM revision and the post-Kaik\={o}ura
+time-dependent hazard studies have emphasized explicit treatment of
+time-dependent seismicity, model uncertainty, and reproducible testing
+\cite{gerstenberger2024nshm,gerstenberger2024srm,gerstenberger2023kaikourahaz}.
+These studies provide the immediate NZ context for interpreting ETAS behavior
+across issue times in this work.
+
+\subsection{Short-term incompleteness and ETAS identifiability}
+
+Short-term aftershock incompleteness (STAI) is one of the most persistent
+sources of early-forecast bias. The first hours to days after a large event are
+typically affected by elevated detection thresholds and waveform overlap, which
+preferentially removes smaller events from catalogs. Classical catalog-quality
+work emphasized that completeness magnitude is time- and context-dependent
+\cite{woessner2005}. Operational aftershock studies then quantified the forecast
+impact: Page et al.\ showed that time-dependent completeness correction is a
+core ingredient for global operational forecasts \cite{page2016}; Seif et al.\
+demonstrated strong parameter distortions from missing data and truncation in
+ETAS estimation \cite{seif2017}; Omi et al.\ showed that early ETAS fitting can
+be made useful only when incompleteness is modeled explicitly
+\cite{omi2013,omi2014,omi2015}. More recent work extends this line by developing
+robust summary statistics for transiently incomplete catalogs
+\cite{vandere1st2021,hainzl2024}.
+For New Zealand specifically, ETAS fitting studies have also shown that
+background-model misspecification and boundary effects can induce systematic
+parameter bias if not explicitly controlled \cite{harte2013bias}.
+
+The literature therefore establishes a clear baseline: completeness correction
+is necessary. What is less well resolved is whether correction alone is enough
+to recover stable branching and Omori parameters at very short issue times.
+The present fixed-horizon experiment directly addresses that identifiability
+question.
+
+\subsection{Reasenberg--Jones versus ETAS in early windows}
+
+Reasenberg--Jones (RJ) and ETAS occupy complementary operational roles.
+RJ provides a low-dimensional, robust baseline that can be issued quickly with
+limited data \cite{reasenberg1989}. ETAS adds secondary triggering, enabling
+more realistic distributional forecasts as data accumulate
+\cite{ogata1988,ogata2006}. Empirical operational comparisons generally find
+that ETAS provides substantial skill gains once the sequence is sufficiently
+resolved; the USGS Puerto Rico evaluation reported clear ETAS improvements over
+RJ in retrospective comparison while retaining prospective operational utility
+\cite{puertorico2022}.
+
+This motivates a regime-based view rather than a model-wins-always framing:
+very early windows may favor robust baselines or strong priors, whereas ETAS
+advantages grow as branching and decay parameters become identifiable.
+Our design tests that transition directly by holding the verification horizon
+fixed while varying only the fit-data window.
+
+\subsection{Prospective CSEP evaluation frameworks and scoring}
+
+CSEP and RELM established the prospective, standardized framework that underpins
+modern forecast testing \cite{schorlemmer2007relm,schorlemmer2010relm}.
+Likelihood-based consistency tests for count, space, and magnitude were
+formalized for common space-rate-magnitude forecast formats
+\cite{zechar2010likelihood}. Model-comparison tests were then extended with
+computationally efficient paired statistics, including the T-test paradigm
+\cite{rhoades2011efficient}. Prospective multi-timescale experiments in Italy
+highlighted that model skill can vary strongly with forecast horizon and
+forecast class, reinforcing the need for horizon-specific evaluation
+\cite{taroni2018italy}. Recent CSEP products now provide larger prospective
+benchmark datasets and reproducible software pipelines for deeper forecast
+intercomparison \cite{serafini2025benchmark}. pyCSEP inherits these principles and makes them
+operationally accessible in reproducible workflows.
+
+This background has two implications for the current manuscript.
+First, pass/fail consistency tests remain essential but are not sufficient for
+mechanistic interpretation. Second, full-distribution diagnostics (proper
+scores, PIT behavior, and distributional distance) are needed to resolve
+why forecasts pass or fail across issue times, not only whether they pass.
+
+\subsection{Kaik\={o}ura-specific context and remaining gap}
+
+Kaik\={o}ura has already been studied as a real-time stochastic-forecast testbed
+\cite{harte2019}, and operational products issued during the sequence are
+well documented \cite{rhoades2017,becker2020kaikoura}. However, most prior
+analyses do not isolate issue-time effects from horizon effects with a strict
+fixed-verification design. As a result, it has been difficult to separate
+true early-parameter identifiability limits from simple differences in
+verification period difficulty.
+
+The primary gap addressed here is therefore not ``whether ETAS works'' in a
+global sense, but \emph{when and why} ETAS transitions between failure and
+calibration regimes for one operationally important sequence under controlled
+verification conditions. The fixed-horizon architecture, combined with
+distribution-level diagnostics, is the key methodological contribution in that
+context.
 
 \section{Experiment Set}
 
@@ -226,9 +368,11 @@ Productivity is parameterized as
 \end{equation}
 with $\alpha=1$ and $M_{\mathrm{ref}}=4.5$, and
 \begin{equation}
-g(\tau;p,c)\propto (\tau+c)^{-p}, \qquad \tau>0,\; c>0,\; p>0.
+g(\tau;p,c)=K_t(\tau+c)^{-p}, \qquad \tau>0,\; c>0,\; p>0,\; K_t>0,
 \label{eq:omori_kernel}
 \end{equation}
+where $K_t$ is the implementation-consistent temporal scaling constant, treated
+as fixed for cross-run diagnostic comparisons.
 
 The expected count in window
 $[t_s,t_e]\times R\times[\Mc,M_{\max}]$ is
@@ -238,16 +382,31 @@ $[t_s,t_e]\times R\times[\Mc,M_{\max}]$ is
 \lambda(t,\mathbf{x},m \mid \mathcal{H}_t)\,dm\,d\mathbf{x}\,dt.
 \label{eq:expected_count}
 \end{equation}
-To track cascade stability in each fitted regime, we use an average branching
-ratio diagnostic
+To track cascade stability in each fitted regime, we use a
+\emph{finite-horizon} branching diagnostic (here, $H=7$ days):
 \begin{equation}
-\bar n =
+\bar n_H =
 \int_{\Mc}^{M_{\max}}
-\kappa(m)\left[\int_0^\infty g(\tau;p,c)\,d\tau\right]f_M(m)\,dm,
+\kappa(m)\,G_H(p,c)\,f_M(m)\,dm,
 \label{eq:branching_ratio}
 \end{equation}
+with
+\begin{equation}
+G_H(p,c)=\int_0^H g(\tau;p,c)\,d\tau
+=
+K_t
+\begin{cases}
+\dfrac{(H+c)^{1-p}-c^{1-p}}{1-p}, & p\neq 1,\\[8pt]
+\log\!\left(\dfrac{H+c}{c}\right), & p=1.
+\end{cases}
+\label{eq:kernel_mass_h}
+\end{equation}
 where $\kappa(m)=10^{a+\alpha(m-M_{\mathrm{ref}})}$ for non-mainshock
-triggering events. We also report simulation-based indirect triggering share
+triggering events. This avoids the divergent $[0,\infty)$ integral when
+$p\le1$ and keeps the diagnostic well-defined for all fitted runs in this
+experiment. Accordingly, $\bar n_H$ is interpreted here as a finite-horizon
+cascade-stability indicator (not a claim of an asymptotic Galton--Watson
+branching ratio). We also report simulation-based indirect triggering share
 \begin{equation}
 \phi_{\mathrm{ind}} =
 100\times\frac{N_{\mathrm{tot}}-N_{\mathrm{direct}}}{N_{\mathrm{tot}}},
@@ -375,6 +534,66 @@ s_d^2=\frac{1}{K-1}\sum_{k=1}^K (N_{k,d}-\bar N_d)^2.
 \label{eq:daily_z}
 \end{equation}
 
+To quantify full-distribution skill (not only pass/fail consistency), we also
+compute proper scoring rules from ensemble samples. For a scalar target $y$
+and simulated draws $\{X_k\}_{k=1}^K$, the ensemble CRPS is
+\begin{equation}
+\mathrm{CRPS}(F,y)=
+\frac{1}{K}\sum_{k=1}^K |X_k-y|
+-\frac{1}{2K^2}\sum_{k=1}^K\sum_{\ell=1}^K |X_k-X_\ell|.
+\label{eq:crps}
+\end{equation}
+For a central $(1-\alpha)$ interval $[L_\alpha,U_\alpha]$, the interval score
+is
+\begin{equation}
+S_\alpha(L_\alpha,U_\alpha;y)=
+(U_\alpha-L_\alpha)
++\frac{2}{\alpha}(L_\alpha-y)\mathbf{1}[y<L_\alpha]
++\frac{2}{\alpha}(y-U_\alpha)\mathbf{1}[y>U_\alpha].
+\label{eq:interval_score}
+\end{equation}
+Lower values of both scores indicate better probabilistic forecasts.
+
+To compare full count-distribution shapes across issue times, we compute
+Jensen--Shannon divergence (JSD) against the 7~d reference distribution:
+\begin{equation}
+\mathrm{JSD}(P\|Q)=\frac{1}{2}\mathrm{KL}(P\|M)+\frac{1}{2}\mathrm{KL}(Q\|M),
+\quad M=\frac{1}{2}(P+Q).
+\label{eq:jsd}
+\end{equation}
+JSD is bounded on $[0,1]$ bits for base-2 logs, with 0 meaning identical
+distributions.
+
+\subsection{Uncertainty intervals and segmented issue-time analysis}
+
+To report uncertainty on headline metrics (count ratio and proper scores), we
+use nonparametric bootstrap resampling of the 1000-catalog ensembles with
+replacement. For a scalar statistic $T(\mathbf{X})$ computed from an ensemble
+$\mathbf{X}=(X_1,\ldots,X_K)$, bootstrap replicates are
+\begin{equation}
+T^{*(b)} = T\!\left(X_{I^{(b)}_1},\ldots,X_{I^{(b)}_K}\right), \qquad
+I^{(b)}_j \sim \mathrm{Unif}\{1,\ldots,K\},
+\label{eq:bootstrap}
+\end{equation}
+and we report percentile 95\% intervals
+$[\hat q_{0.025}(T^*), \hat q_{0.975}(T^*)]$.
+For daily diagnostics, resampling is done at catalog level (rows of the
+daily-count matrix), preserving within-catalog day-to-day dependence.
+
+To quantify issue-time regime transitions, we fit segmented mean models over the
+ordered issue-time index with 0, 1, or 2 breakpoints. For response values
+$y_i$, breakpoint set $B$, and segment means $\mu_s$, the objective is
+\begin{equation}
+\mathrm{SSE}(B)=\sum_{s}\sum_{i\in s(B)} (y_i-\mu_s)^2.
+\label{eq:sse_segment}
+\end{equation}
+We evaluate count-ratio and $\log_{10}$ weekly-CRPS series using exhaustive
+search with minimum segment length of two issue-time points. Model comparison is
+reported via BIC and permutation tests (10,000 permutations) for the
+improvement of segmented models relative to simpler baselines. Breakpoint
+stability is summarized with bootstrap support (5,000 replicates) from
+run-specific metric bootstrap distributions.
+
 Because spatial and pseudolikelihood tests are frequently
 \texttt{status=undersampled}, we report support-failure counts explicitly.
 Let $R_0=\{\text{cells with forecast rate }0\}$. Then
@@ -431,7 +650,7 @@ sign consistency under weaker distributional assumptions.
 
 \subsection{Reproducible workflow}
 
-The full analysis is reproduced in three stages:
+The full analysis is reproduced in four stages:
 \begin{enumerate}
     \item run ETAS simulations from each issue-time configuration with fixed
           verification window definitions (\texttt{etas\_config\_*.json});
@@ -446,15 +665,31 @@ The full analysis is reproduced in three stages:
 
 Representative commands are:
 \begin{verbatim}
-python3 scripts/python/visualize_nz_etas_with_pycsep.py
+./run_etas_pipeline.sh etas_config_premainshock.json
+./run_etas_pipeline.sh etas_config_2h.json
+./run_etas_pipeline.sh etas_config_6h.json
+./run_etas_pipeline.sh etas_config_12h.json
+./run_etas_pipeline.sh etas_config_1d.json
+./run_etas_pipeline.sh etas_config_2d.json
+./run_etas_pipeline.sh etas_config_3d.json
+./run_etas_pipeline.sh etas_config.json
 python3 scripts/python/compare_etas_experiments.py
 python3 scripts/python/build_publication_figures.py
 \end{verbatim}
+with \texttt{etas\_config.json} corresponding to the 7~d reference run.
+The archived reproducibility manifest
+(\texttt{build/comparison/publication\_reproducibility\_metadata.md}) records
+the exact git commit, Python/NumPy/Matplotlib/pyCSEP versions, and RNG seeds
+used for bootstrap and segmentation diagnostics.
 
 Primary machine-readable outputs used in this manuscript are:
 \texttt{build/pycsep/evaluation\_json/*.json},
-\texttt{build/comparison/publication\_regime\_metrics.csv}, and
-\texttt{build/comparison/publication\_daily\_metrics.csv}.
+\texttt{build/comparison/publication\_regime\_metrics.csv},
+\texttt{build/comparison/publication\_daily\_metrics.csv}, and
+\texttt{build/comparison/publication\_probabilistic\_scores.csv}.
+Additional reproducibility and segmentation outputs are
+\texttt{build/comparison/publication\_change\_point\_analysis.csv} and
+\texttt{build/comparison/publication\_reproducibility\_metadata.md}.
 
 \section{Results}
 
@@ -512,15 +747,16 @@ cascading is a significant component of sequence productivity.
 However, 2~d and 3~d data are still insufficient to identify the Omori decay
 exponent accurately. Both fits return $p=0.90$, while the 7~d fit gives
 $p=1.10$. Since $p$ controls the long-term tail of the Omori law, a fit with
-$p=0.90$ generates too many events at days 7--14 relative to the true decay
-rate. This \textbf{Omori barrier} is only fully crossed with 7~d of data.
+$p=0.90$ generates too many events at days 7--14 relative to the 7~d
+reference-run decay rate. This \textbf{Omori barrier} is only fully crossed
+with 7~d of data.
 
 These two barriers are conceptually distinct and require different amounts of
 information. The branching barrier depends primarily on observing enough
 aftershock-to-aftershock pairs to lift the $a$-value estimate; the Omori
 barrier depends on observing the temporal curvature of the decay rate over a
-sufficiently long baseline. Recognizing them as separate constraints is a novel
-finding of this fixed-horizon experiment.
+sufficiently long baseline. Separating these two constraints is useful for
+targeting model improvements by issue-time regime.
 
 \subsection{Fixed-horizon count skill and the three failure regimes}
 \label{sec:count}
@@ -544,7 +780,7 @@ MLL is the marginal log-likelihood test lower-tail quantile.}
 \toprule
 Run & Median & $E[N]$ & Ratio & $(\delta_1,\delta_2)$ & M-test & Resamp-M & MLL & S-test \\
 \midrule
-Generic & 103 & 144.9 & 0.32 & (0.003, 0.997) & (0.999, 0.001) & (0.852, 0.148) & (0.360, 0.640) & (0.014, 0.986) \\
+Generic & 86 & 144.9 & 0.27 & (0.003, 0.997) & (0.999, 0.001) & (0.852, 0.148) & (0.360, 0.640) & (0.014, 0.986) \\
 2 h & 54 & 252.6 & 0.17 & (0.000, 1.000) & (1.000, 0.000) & (0.805, 0.195) & (0.369, 0.631) & (0.000, 1.000) \\
 6 h & 50 & 432.2 & 0.15 & (0.000, 1.000) & (1.000, 0.000) & (0.824, 0.176) & (0.376, 0.624) & (0.000, 1.000) \\
 12 h & 45 & 921.3 & 0.14 & (0.000, 1.000) & (1.000, 0.000) & (0.744, 0.256) & (0.390, 0.610) & (0.000, 1.000) \\
@@ -563,10 +799,11 @@ are 0.011 (Generic), 0.000 (2~h--1~d), 0.018 (2~d), 0.016 (3~d), 0.031 (7~d).
 
 \vspace{6pt}
 \noindent\textbf{Regime 1 (Generic and 2~h--1~d): STAI and branching-identifiability failure.}
-Simulation medians range from 45 to 103 events, giving median-to-observed ratios
-of 0.14--0.32. Every N-test in this regime has $\delta_2=1.000$: all 1000
-simulations predict fewer events than the 323 observed, a complete failure by
-underprediction. This failure is not simply a consequence of catalog
+Simulation medians range from 45 to 86 events, giving median-to-observed ratios
+of 0.14--0.27. All runs in this regime fail by severe underprediction:
+the 2~h--1~d runs have $\delta_2=1.000$ (all 1000 simulations below the
+observed count), while the generic run is nearly identical with
+$\delta_2=0.997$. This failure is not simply a consequence of catalog
 incompleteness---\texttt{timeDependentMc=true} is enabled for the 2~h--1~d
 runs---but reflects a deeper identifiability failure: the MLE solution has zero
 (or near-zero) cascading, so each simulation is driven almost entirely by the
@@ -592,6 +829,46 @@ simulated distribution. Both the branching structure and the Omori decay rate
 are now correctly identified. The PL-test and S-test remain undersampled (see
 Section~\ref{sec:spatial}), but the count and temporal calibration are sound.
 
+\subsection{Bootstrap uncertainty and segmented issue-time tests}
+\label{sec:segmented_tests}
+
+Bootstrap uncertainty intervals from the full 1000-catalog ensembles confirm
+that regime separation is not an artifact of point estimates. For median/observed
+count ratio, representative 95\% intervals are:
+12~h = 0.139 [0.133, 0.139], 2~d = 1.545 [1.514, 1.571], and
+7~d = 1.034 [1.019, 1.046] (from
+\texttt{publication\_regime\_metrics.csv}). For weekly CRPS, representative
+95\% intervals are:
+7~d = 14.48 [13.24, 15.89], 3~d = 144.66 [140.97, 148.49], and
+2~h = 256.45 [254.92, 258.00]
+(from \texttt{publication\_probabilistic\_scores.csv}).
+
+Segmented issue-time testing (\texttt{publication\_change\_point\_analysis.csv})
+identifies a statistically supported \emph{primary} transition in count ratio
+between 1~d and 2~d (best one-break model, permutation $p=0.036$), consistent
+with the branching-barrier interpretation. A two-break count-ratio model does
+not improve over one-break ($p=0.970$), indicating no additional statistically
+required split in this short 8-point issue-time series. For
+$\log_{10}(\mathrm{weekly\ CRPS})$, one- and two-break models are suggestive
+but not significant at $\alpha=0.05$ ($p=0.072$ and $p=0.084$ against null),
+so the late-window transition is supported mainly by the direct calibration
+diagnostics (rolling KS, PIT, and interval coverage) rather than by a strong
+segmentation-test signal alone.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{publication_change_points.png}
+\caption{Segmented change-point diagnostics by issue time.
+Left: count-ratio series with best segmented means.
+Right: $\log_{10}$ weekly CRPS with best segmented means.
+Dashed vertical lines mark best two-break locations from exhaustive segmented
+search with minimum segment length of two points.
+\textit{Alt-text: Two-panel segmented diagnostics showing a clear primary break
+near the 1~d--2~d transition in count ratio, with weaker evidence for an
+additional late-window break in log-weekly CRPS.}}
+\label{fig:change_points}
+\end{figure}
+
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\textwidth]{etas_experiment_comparison.png}
@@ -612,7 +889,7 @@ near-calibration at 7~d.}}
 \subsection{Magnitude--frequency consistency across issue times}
 \label{sec:mag_freq}
 
-A novel finding of the fixed-horizon experiment is that magnitude--frequency
+An important result of the fixed-horizon experiment is that magnitude--frequency
 skill is \emph{decoupled} from count skill: the Gutenberg--Richter distribution
 is well-captured regardless of issue time.
 
@@ -645,42 +922,47 @@ recalibration.
 \subsection{Analytical expected-count inconsistency: $E[N]$ versus simulation ensembles}
 \label{sec:tails}
 
-A critical and novel finding of this experiment is the large divergence between
+A key finding of this experiment is the large divergence between
 the analytical expected count $E[N]$ and the pyCSEP simulation median for early
 issue times:
 
 \begin{table}[ht]
 \centering
 \small
-\caption{Percentile distribution of simulated event counts and comparison of
-analytical expected count to simulation median (days 7--14, $M\geq3$).}
+\caption{Summary-file pathway percentile distribution of simulated event counts
+and comparison of analytical expected count to simulation median
+(days 7--14, $M\geq3$). Values in this table come from the summary/aggregation
+pathway (Table \ref{tab:counts} reports pyCSEP representative-catalog
+summaries).}
 \label{tab:percentiles}
 \begin{tabular}{lrrrrr}
 \toprule
 Run & 5th pctile & Median (sim) & 95th pctile & $E[N]$ (analytical) & $E[N]$ / Median \\
 \midrule
-Generic & 72 & 103 & 186 & 144.9 & 1.4 \\
-2 h & 66 & 85 & 115 & 252.6 & 3.0 \\
-6 h & 68 & 87 & 114 & 432.2 & 5.0 \\
-12 h & 69 & 87 & 119 & 921.3 & 10.6 \\
-1 d & 72 & 94 & 125 & 928.7 & 9.9 \\
-2 d & 421 & 513 & 771 & 403.5 & 0.79 \\
-3 d & 428 & 507 & 668 & 417.5 & 0.82 \\
-7 d & 273 & 341 & 490 & 265.7 & 0.78 \\
+Generic & 51.0 & 86 & 167.1 & 145.0 & 1.69 \\
+2 h & 33.0 & 54 & 87.0 & 252.6 & 4.68 \\
+6 h & 32.0 & 50 & 82.0 & 432.2 & 8.64 \\
+12 h & 29.0 & 45 & 80.0 & 921.3 & 20.47 \\
+1 d & 31.0 & 51 & 84.0 & 928.7 & 18.21 \\
+2 d & 411.0 & 499 & 742.1 & 403.5 & 0.81 \\
+3 d & 418.0 & 492 & 646.1 & 417.5 & 0.85 \\
+7 d & 270.0 & 334 & 474.1 & 265.7 & 0.80 \\
 \bottomrule
 \end{tabular}
 \vspace{4pt}
 \raggedright
 \footnotesize
 Median (sim) is from the simulation percentile distribution; this differs
-slightly from the pyCSEP representative-catalog median used in
-Table~\ref{tab:counts}. $E[N]$ is the analytical expected count from the ETAS
-summary file.
+from the pyCSEP representative-catalog median used in
+Table~\ref{tab:counts} because the two medians are computed from different
+processing pathways and filtering logic. $E[N]$ is the analytical expected
+count from the ETAS summary file.
 \end{table}
 
-For the 6~h run, $E[N]=432$ while the simulation median is 87, a factor of
-5.0. For 12~h and 1~d, $E[N]$ is approximately 921 and 929, respectively,
-while the simulation medians are 87 and 94---divergence factors of 10--11.
+For the 6~h run, $E[N]=432$ while the simulation median is 50, a factor of
+8.64. For 12~h and 1~d, $E[N]$ is approximately 921 and 929, respectively,
+while the simulation medians are 45 and 51---divergence factors of 20.47 and
+18.21.
 Crucially, this mismatch is not limited to medians: the empirical means from
 the pyCSEP count distributions remain close to the medians (e.g., 12~h:
 mean 48.3, median 45), yet both are far below $E[N]$. This indicates that the
@@ -694,8 +976,9 @@ while early-window runs show extreme ratios up to $\sim19$.
 
 \textbf{Operational warning}: for the early issue-time regime (2~h--1~d),
 reporting $E[N]$ from the ETAS summary file as the forecast rate estimate would
-be catastrophically misleading---producing apparent rates of 252--929 events
-against a typical simulated catalog of 45--94 events. Until this inconsistency
+be materially misleading---producing apparent rates of 252--929 events
+against typical simulated catalogs of 45--54 events for the 2~h--1~d issue
+times. Until this inconsistency
 is resolved, operational summaries should rely on empirical simulation
 distributions (median and central intervals) rather than analytical $E[N]$.
 
@@ -725,7 +1008,7 @@ expected-count consistency checks, and rolling calibration by issue time.}}
 \label{fig:regime_synthesis}
 \end{figure}
 
-\subsection{Novel finding: aggregate calibration at 7~d is achieved by daily error compensation}
+\subsection{Daily decomposition: aggregate calibration at 7~d is achieved by daily error compensation}
 \label{sec:daily_comp}
 
 Using the full 1000-catalog ensembles, we decomposed the fixed-horizon
@@ -749,15 +1032,46 @@ alone:
     uniformly positive in forecast-minus-observed space (no sign flips).
 
     \item \textbf{Regime~3 (7~d) is mixed-sign daily behavior with compensation.}
-    The 7~d run has $\hat{F}_d$ spanning 0.033--0.801 and two daily sign flips.
-    Its weekly total is near-calibrated because overprediction in some bins
-    (e.g., day 10--11) is compensated by underprediction in others
-    (e.g., days 8--9 and 13--14), not because each day is individually perfect.
+    The 7~d run has $\hat{F}_d$ spanning 0.033--0.801 and three daily sign
+    flips (Table~\ref{tab:daily7d}). Its weekly total is near-calibrated because
+    overprediction in some bins (e.g., days 7--8 and 10--11, where $\hat{F}_d=0.193$
+    and 0.033 respectively) is compensated by underprediction in others
+    (e.g., days 8--9 and 13--14, where $\hat{F}_d=0.768$ and 0.801), not because
+    each day is individually well-calibrated.
 \end{enumerate}
 
-This compensation mechanism is a novel operational finding: weekly N-test
+\begin{table}[ht]
+\centering
+\small
+\caption{Day-by-day empirical CDF diagnostic for the 7~d reference run
+(days 7--14 post-mainshock). $\hat{F}_d = \Pr(N_{\mathrm{sim},d}\leq N_{\mathrm{obs},d})$.
+Values $<0.05$ indicate overprediction (model places most mass above observed);
+values $>0.95$ indicate underprediction. Standardized residual $Z_d$ is defined
+in Equation~\ref{eq:daily_z}.}
+\label{tab:daily7d}
+\begin{tabular}{lrrrr}
+\toprule
+Day bin & $N_{\mathrm{obs},d}$ & Sim.\ median & $\hat{F}_d$ & $Z_d$ \\
+\midrule
+7--8  & 50 & 59 & 0.193 & $-0.81$ \\
+8--9  & 64 & 55 & 0.768 & $+0.39$ \\
+9--10 & 51 & 51 & 0.520 & $-0.21$ \\
+10--11 & 31 & 48 & 0.033 & $-1.25$ \\
+11--12 & 37 & 44 & 0.262 & $-0.64$ \\
+12--13 & 40 & 41 & 0.488 & $-0.26$ \\
+13--14 & 50 & 39 & 0.801 & $+0.45$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This compensation mechanism has an important operational implication: weekly N-test
 success can mask substantial intra-week allocation errors, so daily
 distribution diagnostics should be reported alongside weekly consistency tests.
+Day 10--11 is the most discrepant bin ($\hat{F}_d=0.033$, $Z=-1.25$), suggesting
+that the Omori rate at late days within the first post-mainshock week is still
+slightly overestimated even by the best-fitting 7~d run. Day 13--14 ends
+with underprediction ($Z=+0.45$), indicating a small acceleration or cluster at
+the end of the window not captured by the smoothly decaying ETAS intensity.
 
 \begin{figure}[ht]
 \centering
@@ -774,6 +1088,126 @@ across all daily bins. Figure generated by
 mixed-sign daily errors for the 7~d run.}}
 \label{fig:daily_decomposition}
 \end{figure}
+
+\subsection{Probabilistic score diagnostics: discrimination, calibration, and sharpness}
+\label{sec:prob_scores}
+
+We computed proper-score and distribution-distance diagnostics from the full
+ensemble outputs (\texttt{publication\_probabilistic\_scores.csv}; Figure
+\ref{fig:prob_scores}). These metrics sharpen the regime interpretation by
+quantifying not just directional bias but full predictive-distribution quality.
+
+At weekly scale, the 7~d run is clearly superior:
+CRPS = 14.48 and 90\% interval score = 204.15, compared with
+CRPS = 144.66--150.57 and interval score = 2090--2128 for the 2~d--3~d runs,
+and CRPS = 256--266 with interval score = 4774--4911 for the 2~h--1~d runs.
+Thus the 7~d weekly predictive distribution is improved by about one order of
+magnitude relative to both early and intermediate issue times.
+
+At daily scale, the same ordering persists:
+daily-mean CRPS = 5.74 at 7~d, versus 20.63--22.33 at 2~d--3~d and
+29.87--31.17 at 2~h--1~d. Daily 90\% interval-score penalties are also much
+lower at 7~d (52.75) than at 2~d--3~d (235) and 2~h--1~d (514--545).
+Calibration diagnostics are consistent with the regime picture:
+mean $|\mathrm{PIT}-0.5|$ is 0.230 at 7~d, 0.462 at 2~d--3~d, and
+0.498--0.499 at 2~h--1~d; the fraction of extreme daily PIT bins
+($<0.05$ or $>0.95$) is 0.143, 0.714, and 1.0, respectively.
+
+Distributional distance to the 7~d reference is similarly diagnostic.
+Weekly JSD is 0.728 for 2~d--3~d and 1.0 for 2~h--1~d; daily-mean JSD is
+0.470 for 2~d--3~d and $\sim$0.98 for 2~h--1~d.
+This confirms that the 2~d--3~d forecasts are \emph{closer in shape} to the
+calibrated regime but still substantially miscalibrated, whereas the 2~h--1~d
+forecasts are distributionally almost disjoint from the 7~d behavior.
+
+\subsubsection*{Double failure: bias and overconfidence simultaneously}
+
+A striking property of the non-calibrated regimes is that they are not merely
+biased but simultaneously \emph{overconfident}: their predictive intervals are
+too narrow to cover the observed count at any standard confidence level
+(Table~\ref{tab:overconf}). All seven non-7d runs have 90\% interval coverage
+of 0\%, meaning the observed count $N_{\mathrm{obs}}=323$ falls completely
+outside the empirical 5th--95th percentile range of each forecast.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Overconfidence characterization: empirical 90\% predictive interval width,
+coverage probability, and whether $N_{\mathrm{obs}}=323$ falls inside the interval.
+All intervals are derived from the 1000-simulation ensemble.}
+\label{tab:overconf}
+\begin{tabular}{lrrrrc}
+\toprule
+Run & 5th pctile & 95th pctile & Width & Coverage & $N_{\mathrm{obs}}$ in interval? \\
+\midrule
+Generic      & 51  & 167 & 116 & 0\% & No (above) \\
+2 h          & 33  & 87  & 54  & 0\% & No (above) \\
+6 h          & 32  & 82  & 50  & 0\% & No (above) \\
+12 h         & 29  & 80  & 51  & 0\% & No (above) \\
+1 d          & 31  & 84  & 53  & 0\% & No (above) \\
+2 d          & 411 & 742 & 331 & 0\% & No (below) \\
+3 d          & 418 & 646 & 228 & 0\% & No (below) \\
+7 d          & 270 & 474 & 204 & \textbf{100\%} & \textbf{Yes} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In Regime~1 (2~h--1~d), the 90\% interval is only 50--54 events wide---a very
+narrow band---and $N_{\mathrm{obs}}=323$ lies far above the upper bound.
+These forecasts are not only underpredictive; they assert with high apparent
+confidence (by producing narrow distributions) that very few events will occur.
+An emergency manager receiving a ``50--87 events at 90\% confidence'' advisory
+when 323 events ultimately occur would be severely misled by the model's false
+precision.
+
+In Regime~2 (2~d--3~d), the failure mode is the mirror image: the 90\%
+intervals are 228--331 events wide and centered far above the observed count,
+with $N_{\mathrm{obs}}=323$ falling below the 5th percentile. These forecasts
+also assert false precision, in the overprediction direction.
+
+The double-failure pattern---systematic directional bias \emph{combined with}
+overconfidence---is operationally more dangerous than bias alone, because a
+well-calibrated wide uncertainty band would at least warn decision-makers that
+the forecast is uncertain. Narrow miscalibrated bands project unwarranted
+certainty in the wrong direction. This finding strengthens the case for routine
+ensemble-distribution reporting (not just point forecasts) and for explicit
+interval-coverage validation before any ETAS product is issued operationally.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{publication_probabilistic_scores.png}
+\caption{Probabilistic-skill diagnostics across issue times.
+Panel A: weekly CRPS and 90\% interval score.
+Panel B: daily-mean CRPS and daily-mean 90\% interval score.
+Panel C: daily calibration-sharpness frontier (mean $|\mathrm{PIT}-0.5|$ versus
+mean 90\% interval width).
+Panel D: Jensen--Shannon divergence from the 7~d reference forecast
+distribution at weekly and daily scales.
+Lower values are better in Panels A, B, and D; in Panel C, lower x and lower y
+indicate better calibration and sharper forecasts.
+\textit{Alt-text: Probabilistic score panels showing strong improvement at 7~d,
+intermediate performance at 2~d--3~d, and severe distributional mismatch for
+2~h--1~d issue times.}}
+\label{fig:prob_scores}
+\end{figure}
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Evidence map linking principal claims to quantitative support.}
+\label{tab:evidence_map}
+\begin{tabular}{p{3.8cm}p{4.1cm}p{3.2cm}p{2.8cm}}
+\toprule
+Claim & Primary metric(s) & Evidence location & Decision criterion \\
+\midrule
+Primary transition near 1--2~d issue time & Median/observed count ratio, segmented one-break test & Table~\ref{tab:counts}, Section~\ref{sec:segmented_tests}, Figure~\ref{fig:change_points} & One-break permutation $p<0.05$ for count ratio \\
+Late-window calibration appears only at 7~d & N-test $(\delta_1,\delta_2)$, rolling KS, PIT, coverage & Table~\ref{tab:counts}, Table~\ref{tab:support}, Figure~\ref{fig:daily_decomposition} & Joint pass of N-test and non-extreme rolling/PIT diagnostics \\
+Magnitude model is stable across issue times & Resampled M-test, MLL quantiles & Table~\ref{tab:counts}, Section~\ref{sec:mag_freq} & No tail rejection at $\alpha=0.05$ \\
+Early analytical expectation inconsistency & $E[N]$/empirical mean ratio, summary-vs-pyCSEP comparison & Table~\ref{tab:percentiles}, Figure~\ref{fig:regime_synthesis} & Large unresolved divergence; report empirical ensemble summaries \\
+Support limitations remain orthogonal to count calibration & $n^{(S)}_0$, zero-rate cell fraction, PL/S diagnostics & Table~\ref{tab:support}, Figure~\ref{fig:regime_synthesis} & Persistent non-zero unsupported observations across runs \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Spatial support diagnostics}
 \label{sec:spatial}
@@ -819,17 +1253,32 @@ broader kernels: the 7~d fit leaves only 3002 cells empty but still has 16
 observed events in zero-rate locations, suggesting persistent limitation from
 the isotropic kernel assumption rather than from data volume alone.
 
+A noteworthy spatial anomaly is that the 7~d run has \emph{more} zero-rate
+testing cells (3002) than any sequence-specific early-window run (2374--2653),
+even though it uses the most data. This apparent paradox resolves as follows:
+the 7~d spatial kernel, fitted over a broader aftershock distribution, allocates
+more probability mass to a diffuse halo around the rupture zone, effectively
+leaving distant low-density cells with numerically zero rate under the discrete
+grid representation. The early-window kernels are more concentrated, assigning
+non-zero rates only to cells very close to the mainshock but covering that core
+area completely. The net effect is that the number of observed events in
+zero-rate cells ($n^{(S)}_0 = 16$) is nearly identical between the 7~d run and
+the 1~d run (11), even though the 7~d run has 23\% more zero-rate cells by count.
+This illustrates that zero-cell count alone is an inadequate spatial-support
+diagnostic; what matters is how many \emph{observations} fall in those cells,
+which is the $n^{(S)}_0$ quantity reported in Table~\ref{tab:support}.
+
 The rolling KS test is decisive in distinguishing the three regimes. Only the
 7~d run passes ($p=0.98$). The 2~d and 3~d runs fail at $p\approx3\times10^{-5}$:
 despite the approximately correct cumulative count, the Omori decay is too slow
 in these runs and events are allocated incorrectly within the 7--14~d window.
-The 2~h--1~d runs fail catastrophically ($p$ as low as $2\times10^{-21}$)
+The 2~h--1~d runs fail strongly ($p$ as low as $2\times10^{-21}$)
 because the entire simulation count is compressed toward the beginning of the
 window by near-zero $c$ values.
 
 \section{Discussion}
 
-\subsection{Three failure regimes as a novel observational result}
+\subsection{Three failure regimes as an observational result}
 
 The three-regime structure identified in this analysis is only observable under
 the fixed-horizon design. In any experiment where verification windows vary with
@@ -869,7 +1318,7 @@ Real-time operational systems that apply \texttt{timeDependentMc} without also
 recognizing the branching identifiability barrier will issue well-corrected but
 still fundamentally underpredictive forecasts in the first day.
 
-\subsection{Two identifiability barriers as a novel conceptual framework}
+\subsection{Two identifiability barriers as a conceptual framework}
 
 The sequence of regime transitions implies two distinct identifiability
 barriers, each requiring a different amount of data:
@@ -895,6 +1344,51 @@ the first day. The Omori barrier is more fundamental because $p$ estimation
 requires observing the temporal slope over an extended window, but it could be
 addressed by a tight Bayesian prior on $p$ derived from regional or global
 aftershock statistics.
+
+\subsection{How segmented tests inform the barrier interpretation}
+
+The segmented issue-time tests in Section~\ref{sec:segmented_tests} provide a
+formal complement to the regime interpretation. For count ratio, the best
+one-break model places the transition between 1~d and 2~d
+(permutation $p=0.036$), directly supporting the branching-barrier location.
+For $\log_{10}$ weekly CRPS, one- and two-break models are suggestive but not
+significant at $\alpha=0.05$, which is expected with only eight issue-time
+points and one sequence. We therefore treat the late-window transition as
+inference from convergent evidence (parameter shift, rolling KS, PIT/coverage,
+and score collapse at 7~d), with segmented tests used as supportive rather than
+standalone evidence.
+
+\subsection{Double failure: why bias alone understates the operational problem}
+\label{sec:double_failure}
+
+The overconfidence analysis (Section~\ref{sec:prob_scores}) reveals that the
+operational consequence of early-window and intermediate-window failures is more
+severe than count bias alone would suggest. In every non-calibrated run, the
+90\% predictive interval completely excludes the observed count:
+
+\begin{itemize}
+    \item \textbf{Regime~1 (2~h--1~d)}: the 90\% interval spans 50--84 events.
+    A decision-maker receiving this as an operational product would be told,
+    in effect, that there is a 90\% chance of 50--84 earthquakes in the coming
+    week. The truth (323 events) is roughly $4\times$ the upper bound. Not only
+    is the point forecast badly wrong; the stated confidence bound is wrong by
+    the same factor.
+
+    \item \textbf{Regime~2 (2~d--3~d)}: the 90\% interval spans 411--742 events.
+    This is at least the right order of magnitude in width, but the lower bound
+    (411) exceeds the observed count (323) by 27\%. A decision-maker would be
+    told with 90\% confidence that at least 411 events are expected; the true
+    count is below that bound.
+\end{itemize}
+
+The double failure has an important implication for post-hoc model quality
+assessment. If an agency issued an early forecast and later validated it against
+observations, the interval coverage failure would confirm that the model did not
+just produce a low estimate---it produced a \emph{confident} low estimate, which
+is a much more serious failure. Agencies should therefore not report only the
+median or expected count; they should also report the 90\% interval and its
+coverage rate from past analogous events, as this is the statistic that most
+clearly signals whether the model's expressed uncertainty is reliable.
 
 \subsection{Expected-count consistency and the danger of reporting unresolved $E[N]$}
 
@@ -945,7 +1439,7 @@ can distort ETAS parameters \cite{seif2017}. The Kaik\={o}ura case study of
 Harte likewise found that the earliest real-time ETAS forecasts were compromised
 by both early catalog limitations and evolving event metadata \cite{harte2019}.
 
-The archived NZ results fit that pattern but add two specific new observations.
+The archived NZ results fit that pattern but add three specific new observations.
 First, the branching/Omori barrier distinction is more cleanly visible here than
 in previous analyses because of the fixed-horizon design. Second, the explicit
 analytical-versus-stochastic expected-count inconsistency check provides a
@@ -963,6 +1457,31 @@ persists even in the well-calibrated 7~d run suggests that kernel improvements
 would be complementary to, and separate from, the temporal calibration
 improvements identified here.
 
+\section{Limitations}
+
+Four limitations should be kept explicit when interpreting these results.
+\begin{enumerate}
+    \item \textbf{Single-sequence scope}: this manuscript analyzes one
+    operationally important sequence (Kaik\={o}ura). Regime structure and
+    breakpoint locations should be tested prospectively across additional NZ and
+    global sequences before broad generalization.
+
+    \item \textbf{Finite issue-time sample for segmentation}: formal segmented
+    tests are based on eight issue-time points. This provides useful structure
+    tests but limited statistical power, especially for detecting secondary
+    breakpoints.
+
+    \item \textbf{Finite-horizon branching diagnostic}: $\bar n_H$ is defined on
+    a fixed horizon ($H=7$~d) to remain well-defined for $p\le1$. It is a
+    horizon-specific stability indicator, not an asymptotic branching ratio.
+
+    \item \textbf{Analytical-versus-stochastic expected-count mismatch}: early
+    runs show unresolved divergence between summary-file $E[N]$ and empirical
+    simulation distributions. Operational recommendations in this manuscript
+    therefore emphasize empirical ensemble summaries (median and intervals) for
+    early windows.
+\end{enumerate}
+
 \section{Conclusions}
 
 The fixed-horizon issue-time experiment for the 2016 $M_w$ 7.8 Kaik\={o}ura
@@ -975,9 +1494,9 @@ sequence produces the following principal conclusions.
     variable-horizon analyses could not isolate these regimes.
 
     \item \textbf{Regime~1} (generic and 2~h--1~d): the MLE converges to a
-    low-cascade local minimum (indirect triggering 2--9\%, correct value
+    low-cascade local minimum (indirect triggering 2--9\%, 7~d reference value
     $\approx33\%$), producing severely underpredictive simulations
-    (medians 45--103 versus $N_{\mathrm{obs}}=323$; ratios 0.14--0.32). The
+    (medians 45--86 versus $N_{\mathrm{obs}}=323$; ratios 0.14--0.27). The
     \texttt{timeDependentMc} correction is insufficient to recover forecast
     skill: the branching structure cannot be identified from hours of data,
     regardless of completeness correction.
@@ -993,6 +1512,21 @@ sequence produces the following principal conclusions.
     (median 334, ratio 1.03; N-test $(\delta_1,\delta_2)=(0.594,0.411)$) and
     temporally calibrated in aggregate (rolling KS $p=0.98$), but daily-bin
     diagnostics show mixed-sign residuals and compensation.
+
+    \item Bootstrap intervals support regime separation in distribution space.
+    Count-ratio 95\% intervals are 0.139 [0.133, 0.139] at 12~h, 1.545
+    [1.514, 1.571] at 2~d, and 1.034 [1.019, 1.046] at 7~d. Weekly CRPS 95\%
+    intervals are 256.45 [254.92, 258.00] at 2~h, 144.66 [140.97, 148.49] at
+    3~d, and 14.48 [13.24, 15.89] at 7~d.
+
+    \item Proper-score diagnostics confirm the regime ordering in full
+    distribution space: the 7~d run minimizes weekly and daily CRPS
+    (14.48 and 5.74, respectively) and interval scores (204 and 52.8),
+    whereas 2~d--3~d remain intermediate and 2~h--1~d are worst.
+    Jensen--Shannon divergence to the 7~d reference is near-maximal
+    ($\sim1.0$) for 2~h--1~d and moderate ($\sim0.73$ weekly,
+    $\sim0.47$ daily) for 2~d--3~d, quantitatively separating the two
+    non-calibrated regimes.
 
     \item Analytical expected counts $E[N]$ diverge strongly from empirical
     simulation summaries in early windows (up to factors of $\sim$19 versus
@@ -1014,11 +1548,26 @@ sequence produces the following principal conclusions.
 
     \item We identify \textbf{two distinct identifiability barriers}: a
     \emph{branching barrier} (crossed near 2~d post-mainshock) and an
-    \emph{Omori barrier} (crossed near 7~d). These barriers require different
-    interventions: the branching barrier may be addressable with informative
-    $a$-value priors or sequence-similarity methods; the Omori barrier is most
-    efficiently addressed with Bayesian hierarchical priors on $p$, which
-    represent the highest-leverage single improvement for the Regime~2 forecasts.
+    \emph{Omori barrier} (crossed near 7~d). Segmented tests provide statistical
+    support for the primary 1~d--2~d transition (count-ratio one-break
+    permutation $p=0.036$), while evidence for an additional late breakpoint is
+    weaker in this 8-point series and is inferred mainly from calibration and
+    score diagnostics. These barriers require different interventions: the
+    branching barrier may be addressable with informative $a$-value priors or
+    sequence-similarity methods; the Omori barrier is most efficiently addressed
+    with Bayesian hierarchical priors on $p$.
+
+    \item A \textbf{double-failure} pattern---systematic bias \emph{and}
+    overconfidence simultaneously---characterizes all non-calibrated runs.
+    The 90\% predictive interval covers the observed count ($N_{\mathrm{obs}}=323$)
+    only for the 7~d run (coverage 100\%); all seven other runs have 0\% coverage.
+    Regime~1 forecasts express false certainty with narrow intervals of 50--116
+    events (the truth is above); Regime~2 forecasts express false certainty with
+    intervals of 228--331 events centered above the truth. Only when both
+    identifiability barriers are crossed does the model simultaneously achieve
+    correct direction, correct scale, and appropriate uncertainty spread.
+    Interval coverage validation should be a mandatory pre-issuance check for any
+    operational ETAS product.
 \end{enumerate}
 
 \section*{Data and Resources}
@@ -1030,9 +1579,12 @@ catalogs were accessed through the GeoNet event and catalog services during the
 archived runs. Additional publication diagnostics were generated into
 \texttt{build/comparison/publication\_*.png} and
 \texttt{build/comparison/publication\_*.csv} using
-\texttt{scripts/python/build\_publication\_figures.py}. pyCSEP documentation
-and catalog-evaluation concepts were taken from the official documentation site
-\cite{savran2020}. External URLs consulted in this study (all accessed on
+\texttt{scripts/python/build\_publication\_figures.py}. Reproducibility metadata
+(git commit hash, software versions, RNG seeds, and exact command order) are
+archived in
+\texttt{build/comparison/publication\_reproducibility\_metadata.md}. pyCSEP documentation
+URLs are listed below, and catalog-evaluation concepts follow the
+catalog-based testing literature \cite{savran2020}. External URLs consulted in this study (all accessed on
 1~April~2026) are:
 \url{https://quakesearch.geonet.org.nz/},
 \url{https://wfs.geonet.org.nz/geonet/ows},
@@ -1058,10 +1610,66 @@ design and interpretation.
 \newpage
 \begin{thebibliography}{99}
 
+\bibitem[Becker et~al.(2020)]{becker2020kaikoura}
+J. S. Becker, S. H. Potter, S. K. McBride, E. E. Hudson-Doyle,
+M. Gerstenberger, and A.-M. Christopherson (2020),
+\emph{Forecasting for a fractured land: A case study of the communication and
+use of aftershock forecasts from the $M_w$ 7.8 2016 Kaik\={o}ura earthquake in
+Aotearoa New Zealand},
+Seismological Research Letters, 91(6), 3343--3357.\\
+\url{https://doi.org/10.1785/0220190354}
+
 \bibitem[Collaboratory for the Study of Earthquake Predictability(n.d.)]{csep_etas}
 Collaboratory for the Study of Earthquake Predictability (CSEP),
 \emph{ETAS and ETASV1.1 models}.\\
 \url{https://cseptesting.org/etas-model/}
+
+\bibitem[Field et~al.(2017)]{field2017ucerf3etas}
+E. H. Field, K. R. Milner, J. L. Hardebeck, M. T. Page,
+N. J. van~der~Elst, T. H. Jordan, A. J. Michael, B. E. Shaw, and
+M. J. Werner (2017),
+\emph{A spatiotemporal clustering model for the Third Uniform California
+Earthquake Rupture Forecast (UCERF3-ETAS): Toward an operational earthquake
+forecast},
+Bulletin of the Seismological Society of America, 107(3), 1049--1081.\\
+\url{https://doi.org/10.1785/0120160173}
+
+\bibitem[Gerstenberger and Rhoades(2010)]{gerstenberger2010nztest}
+M. C. Gerstenberger and D. A. Rhoades (2010),
+\emph{New Zealand Earthquake Forecast Testing Center},
+Pure and Applied Geophysics, 167(8--9), 877--892.\\
+\url{https://doi.org/10.1007/s00024-010-0082-4}
+
+\bibitem[Gerstenberger et~al.(2016)]{gerstenberger2016canterbury}
+M. C. Gerstenberger, D. A. Rhoades, and G. H. McVerry (2016),
+\emph{A hybrid time-dependent probabilistic seismic-hazard model for
+Canterbury, New Zealand},
+Seismological Research Letters, 87(6), 1317--1328.\\
+\url{https://doi.org/10.1785/0220160084}
+
+\bibitem[Gerstenberger et~al.(2023)]{gerstenberger2023kaikourahaz}
+M. C. Gerstenberger, D. A. Rhoades, N. Litchfield, E. Abbott, T. Goded, and
+A. Christophersen (2023),
+\emph{A time-dependent seismic hazard model following the Kaik\={o}ura
+$M_w$ 7.8 earthquake},
+New Zealand Journal of Geology and Geophysics, 66(4), 474--487.\\
+\url{https://doi.org/10.1080/00288306.2022.2158881}
+
+\bibitem[Gerstenberger et~al.(2024a)]{gerstenberger2024nshm}
+M. C. Gerstenberger, N. Litchfield, K. Berryman, S. L. Bora,
+R. M. K. L. Leonard, M. Stirling, et~al. (2024),
+\emph{The 2022 Aotearoa New Zealand National Seismic Hazard Model:
+process, overview, and results},
+Bulletin of the Seismological Society of America, 114(4), 1621--1643.\\
+\url{https://doi.org/10.1785/0120230182}
+
+\bibitem[Gerstenberger et~al.(2024b)]{gerstenberger2024srm}
+M. C. Gerstenberger, N. Litchfield, K. Berryman, S. L. Bora,
+R. M. K. L. Leonard, M. Stirling, et~al. (2024),
+\emph{A seismicity rate model for the 2022 Aotearoa New Zealand National
+Seismic Hazard Model},
+Bulletin of the Seismological Society of America, 114(4), 1644--1665.\\
+\url{https://doi.org/10.1785/0120230165}
 
 \bibitem[Hainzl et~al.(2024)]{hainzl2024}
 S. Hainzl, T. Kumazawa, and Y. Ogata (2024),
@@ -1083,6 +1691,13 @@ D. Harte (2017),
 aftershock sequence model},
 Geophysical Journal International, 210(1), 423--438.\\
 \url{https://doi.org/10.1093/gji/ggx146}
+
+\bibitem[Harte(2013)]{harte2013bias}
+D. Harte (2013),
+\emph{Bias in fitting the ETAS model: A case study based on New Zealand
+seismicity},
+Geophysical Journal International, 192(1), 390--412.\\
+\url{https://doi.org/10.1093/gji/ggs026}
 
 \bibitem[Harte(2019)]{harte2019}
 D. Harte (2019),
@@ -1109,6 +1724,14 @@ W. Marzocchi, A. M. Lombardi, and E. Casarotti (2014),
 Italy},
 Seismological Research Letters, 85(5), 961--969.\\
 \url{https://doi.org/10.1785/0220130219}
+
+\bibitem[Mizrahi et~al.(2024)]{mizrahi2024oefreview}
+N. Mizrahi, S. Nandan, J. A. Bayona, M. Taroni, M. J. Werner,
+T. H. Jordan, and W. Marzocchi (2024),
+\emph{Developing, testing, and communicating operational earthquake forecasts:
+A review},
+Reviews of Geophysics, 62(3), e2023RG000873.\\
+\url{https://doi.org/10.1029/2023RG000873}
 
 \bibitem[Ogata(1988)]{ogata1988}
 Y. Ogata (1988),
@@ -1151,6 +1774,21 @@ intersequence variability},
 Bulletin of the Seismological Society of America, 106(5), 2290--2301.\\
 \url{https://doi.org/10.1785/0120160073}
 
+\bibitem[Han et~al.(2025)]{han2025oef}
+Y. Han, M. Taroni, S. Mancini, J. A. Bayona, N. Mizrahi, M. Marcori,
+M. C. Gerstenberger, A. Christophersen, and M. J. Werner (2025),
+\emph{Towards a harmonized operational earthquake forecasting model for Europe},
+Natural Hazards and Earth System Sciences, 25, 991--1012.\\
+\url{https://doi.org/10.5194/nhess-25-991-2025}
+
+\bibitem[Hamling et~al.(2017)]{hamling2017kaikoura}
+I. J. Hamling, S. Hreinsd\'ottir, K. Clark, J. Elliott, C. Liang, E. Fielding,
+N. Litchfield, P. Villamor, L. Wallace, et~al. (2017),
+\emph{Complex multifault rupture during the 2016 $M_w$ 7.8 Kaik\={o}ura
+earthquake, New Zealand},
+Science, 356(6334), eaam7194.\\
+\url{https://doi.org/10.1126/science.aam7194}
+
 \bibitem[Reasenberg and Jones(1989)]{reasenberg1989}
 P. Reasenberg and L. Jones (1989),
 \emph{Earthquake hazard after a mainshock in California},
@@ -1162,6 +1800,13 @@ D. Rhoades, M. Gerstenberger, A. Christophersen, and D. Harte (2017),
 \emph{Earthquake forecasts and their applications following the M7.8 2016
 Kaik\={o}ura earthquake}. Southern California Earthquake Center abstract page.\\
 \url{https://central.scec.org/publication/7689}
+
+\bibitem[Rhoades et~al.(2011)]{rhoades2011efficient}
+D. A. Rhoades, D. Schorlemmer, M. C. Gerstenberger, A. Christophersen,
+J. D. Zechar, and M. Imoto (2011),
+\emph{Efficient testing of earthquake forecasting models},
+Acta Geophysica, 59(4), 728--747.\\
+\url{https://doi.org/10.2478/s11600-011-0013-5}
 
 \bibitem[Savran et~al.(2020)]{savran2020}
 W. H. Savran, M. J. Werner, D. A. Rhoades, J. A. Bayona, and D. R. Baumgardt
@@ -1177,12 +1822,42 @@ assumptions},
 Journal of Geophysical Research: Solid Earth, 122(6), 4490--4510.\\
 \url{https://doi.org/10.1002/2016JB012809}
 
+\bibitem[Schorlemmer et~al.(2007)]{schorlemmer2007relm}
+D. Schorlemmer, M. C. Gerstenberger, S. Wiemer, D. D. Jackson, and
+D. A. Rhoades (2007),
+\emph{Earthquake likelihood model testing},
+Seismological Research Letters, 78(1), 17--29.\\
+\url{https://doi.org/10.1785/gssrl.78.1.17}
+
+\bibitem[Schorlemmer et~al.(2010)]{schorlemmer2010relm}
+D. Schorlemmer, J. D. Zechar, M. J. Werner, E. H. Field, D. D. Jackson,
+T. H. Jordan, and the RELM Working Group (2010),
+\emph{First results of the Regional Earthquake Likelihood Models experiment},
+Pure and Applied Geophysics, 167(8--9), 859--876.\\
+\url{https://doi.org/10.1007/s00024-010-0081-5}
+
 \bibitem[Spassiani et~al.(2023)]{spassiani2023}
 I. Spassiani, G. Falcone, M. Murru, and W. Marzocchi (2023),
 \emph{Operational Earthquake Forecasting in Italy: validation after 10 yr of
 operativity},
 Geophysical Journal International, 234(3), 2501--2518.\\
 \url{https://doi.org/10.1093/gji/ggad256}
+
+\bibitem[Taroni et~al.(2018)]{taroni2018italy}
+M. Taroni, W. Marzocchi, D. Schorlemmer, M. J. Werner, S. Wiemer,
+J. D. Zechar, L. Heiniger, and F. Euchner (2018),
+\emph{Prospective CSEP evaluation of 1-day, 3-month, and 5-yr earthquake
+forecasts for Italy},
+Seismological Research Letters, 89(4), 1251--1261.\\
+\url{https://doi.org/10.1785/0220180031}
+
+\bibitem[Serafini et~al.(2025)]{serafini2025benchmark}
+F. Serafini, J. A. Bayona, M. N. Cahalane, S. Jain, T. H. Jordan,
+N. Mizrahi, D. Schorlemmer, M. Taroni, K. E. Wang, and M. J. Werner (2025),
+\emph{A benchmark database of ten years of prospective next-day earthquake
+forecasts in California},
+Scientific Data, 12, 1501.\\
+\url{https://doi.org/10.1038/s41597-025-05766-3}
 
 \bibitem[van~der~Elst(2021)]{vandere1st2021}
 N. J. van der Elst (2021),
@@ -1219,6 +1894,13 @@ J. Zhuang, M. J. Werner, and D. Harte (2013),
 \emph{Stability analysis of the ETAS model for earthquake occurrences},
 Physical Review E, 88, 062109.\\
 \url{https://doi.org/10.1103/PhysRevE.88.062109}
+
+\bibitem[Zechar et~al.(2010)]{zechar2010likelihood}
+J. D. Zechar, M. C. Gerstenberger, and D. A. Rhoades (2010),
+\emph{Likelihood-based tests for evaluating space-rate-magnitude earthquake
+forecasts},
+Bulletin of the Seismological Society of America, 100(3), 1184--1195.\\
+\url{https://doi.org/10.1785/0120090192}
 
 \end{thebibliography}
 
