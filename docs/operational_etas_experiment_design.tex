@@ -1,0 +1,643 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{parskip}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+\title{Operational ETAS Forecasting for Large New Zealand Earthquakes:\\
+Literature Review and Experiment Design for Early vs Late Data Windows}
+\author{NZ ETAS Pipeline}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Purpose}
+
+This document summarizes the state of the art in operational ETAS
+(Epidemic-Type Aftershock Sequence) forecasting with a specific focus on
+one practical question for this repository:
+
+\begin{quote}
+How should we design and evaluate ETAS experiments that compare forecasts
+issued from short data windows (hours to days after a mainshock) against
+later forecasts for a large New Zealand earthquake such as the
+2016 M7.8 Kaik\={o}ura sequence?
+\end{quote}
+
+The emphasis is operational rather than purely methodological. The review
+therefore concentrates on:
+
+\begin{itemize}
+    \item forecast issue times and learning-window lengths used in practice;
+    \item short-term aftershock incompleteness and its effect on ETAS fitting;
+    \item experiment designs used to evaluate ETAS skill as a function of
+          available data;
+    \item the role of Reasenberg--Jones (RJ) as the early-forecast baseline;
+    \item Kaik\={o}ura-specific ETAS experience;
+    \item pyCSEP best practice for comparing forecasts with different time
+          windows.
+\end{itemize}
+
+\section{Executive Summary}
+
+\begin{enumerate}
+    \item A fixed 7-day fitting window is not representative of modern
+          operational aftershock forecasting. USGS OAF starts within
+          tens of minutes and updates repeatedly through the first hours,
+          then daily thereafter \cite{usgs_schedule,usgs_overview}.
+
+    \item The dominant technical problem in very early ETAS forecasting is
+          short-term aftershock incompleteness (STAI), not lack of model
+          sophistication. In the first hours to days after a large mainshock,
+          the effective completeness magnitude is elevated and decays with
+          time \cite{omi2013,omi2014,page2016,seif2017,lippiello2019,hainzl2024}.
+
+    \item Literature-based ETAS experiments usually vary the issue time
+          while keeping the target forecast horizon fixed. That is the clean
+          way to isolate the value of additional data
+          \cite{omi2013,omi2015,harte2019}.
+
+    \item RJ remains the correct operational baseline for the earliest issue
+          times because it is robust with little sequence data. ETAS becomes
+          more attractive once aftershocks accumulate or incompleteness is
+          handled explicitly \cite{reasenberg1989,usgs_overview,puertorico2022}.
+
+    \item The Kaik\={o}ura case is a warning against naive early ETAS fitting.
+          Harte's real-time forecast evaluation found that ETAS
+          underforecasted immediately after the mainshock and overforecasted
+          later, in part because the earliest catalog was incomplete and the
+          mainshock magnitude itself was revised substantially
+          \cite{harte2019}.
+
+    \item For pyCSEP, forecasts with different start/end times are distinct
+          forecasts and should be evaluated separately with matched observed
+          catalogs. Catalog-based tests are the appropriate primary framework
+          for ETAS synthetic catalogs \cite{pycsep_eval,pycsep_catalog_tutorial}.
+\end{enumerate}
+
+\section{Operational Practice: How Early Are Aftershock Forecasts Issued?}
+
+\subsection{USGS Operational Aftershock Forecasting (OAF)}
+
+USGS operational practice is the clearest evidence that early forecasting is
+not built around a 7-day waiting period. The official automatic update schedule
+states that forecasts are initiated at 10, 30, and 50 minutes after a
+mainshock, then at 2, 4, 6, 12, and 18 hours, and then daily after that
+\cite{usgs_schedule}. The overview and background material also note that the
+current OAF system supports both Reasenberg--Jones and ETAS-based forecasts,
+using generic, sequence-specific, and Bayesian parameterizations depending on
+how much information is available \cite{usgs_overview,usgs_background}.
+
+Operational implication:
+\begin{itemize}
+    \item the earliest useful forecast is issued with very little sequence data;
+    \item later updates are expected to improve as the catalog stabilizes;
+    \item forecast issuance is continuous, not ``fit once at 7 days''.
+\end{itemize}
+
+\subsection{CSEP Short-Term ETAS Experiments}
+
+In prospective CSEP-style testing, ETAS is typically evaluated through rolling
+short-horizon forecasts rather than through one delayed retrospective fit.
+Zhuang's Japan study produced next-day ETAS forecasts for the whole region
+\cite{zhuang2011}. The California ETAS archive distributed through CSEP is also
+organized as a daily short-term forecast product over 2007--2018
+\cite{csep_etas}.
+
+Operational implication:
+\begin{itemize}
+    \item CSEP standardizes the forecast window and archive process;
+    \item the issue-time ladder is often daily, but the same logic applies to
+          sub-daily windows if the catalog quality supports them.
+\end{itemize}
+
+\subsection{GNS Science / GeoNet New Zealand}
+
+The Kaik\={o}ura operational experience did not revolve around a single ETAS
+forecast issued one week after the event. Rhoades et al.\ report that public
+forecasts were issued immediately after the earthquake, with 1-day, 7-day, and
+30-day horizons, initially using Omori-law decay and then a STEP model after
+two days. ETAS forecasts were run in parallel as a real-time experiment
+\cite{rhoades2017}.
+
+Operational implication:
+\begin{itemize}
+    \item New Zealand practice already recognized the need for immediate public
+          guidance;
+    \item ETAS was treated as part of a broader operational toolkit, not as the
+          only early-sequence model.
+\end{itemize}
+
+\subsection{INGV / OEF-Italy}
+
+Italy's OEF system is another operational example of repeated issuance rather
+than delayed fitting. The establishment paper and later validation work describe
+an operational workflow that updates forecasts on a regular schedule and after
+significant events, with weekly target forecasts used in Civil Protection
+contexts \cite{marzocchi2014,spassiani2023}.
+
+Operational implication:
+\begin{itemize}
+    \item operational systems frequently choose a fixed forecast horizon
+          (for Italy, one week) while updating the model repeatedly;
+    \item the natural comparison axis is issue time, not only absolute time
+          since the mainshock.
+\end{itemize}
+
+\section{Short-Term Catalog Incompleteness and ETAS}
+
+\subsection{Why Incompleteness Dominates the Early Problem}
+
+The first hours after a large mainshock are the hardest interval for ETAS
+fitting because the catalog is transiently incomplete. Small events are missed
+when seismic phases overlap, codas mask one another, and routine detection and
+phase association are stressed by extreme rate bursts. Lippiello et al.\
+review this as a central post-seismic forecasting issue rather than a minor
+catalog nuisance \cite{lippiello2019}.
+
+This matters because ETAS uses the early aftershock rate and magnitude
+distribution to infer productivity, Omori decay, and branching structure.
+If many small aftershocks are missing, ETAS can misestimate:
+
+\begin{itemize}
+    \item the short-time offset parameter $c$;
+    \item the Omori exponent $p$;
+    \item the productivity parameters $a$ and $a_{ms}$;
+    \item the effective branching ratio;
+    \item uncertainty in all of the above.
+\end{itemize}
+
+\subsection{Key Early-Sequence Papers}
+
+Ogata and Katsura developed one of the early explicit approaches to immediate
+aftershock forecasting under incomplete detection by modeling the detection
+rate itself \cite{ogata2006}. Omi et al.\ then pushed this operationally:
+
+\begin{itemize}
+    \item \textbf{Omi et al.\ (2013)} tested forecasts based on the first 3, 6,
+          12, and 24 hours after a mainshock and showed that incompleteness
+          correction materially improved forecasting performance
+          \cite{omi2013}.
+    \item \textbf{Omi et al.\ (2014)} showed that ETAS parameters can be
+          estimated from an early incomplete sequence when the missing-data
+          process is modeled explicitly \cite{omi2014}.
+    \item \textbf{Omi et al.\ (2015)} found that Bayesian and ensemble ETAS
+          forecasts are more stable than single plug-in forecasts when only
+          early, uncertain data are available \cite{omi2015}.
+\end{itemize}
+
+The operational USGS synthesis by Page et al.\ identifies
+time-dependent catalog incompleteness as one of the three essential ingredients
+for improved global aftershock forecasts \cite{page2016}. Seif et al.\
+quantified the statistical damage from ignoring missing data and truncation:
+ETAS parameter estimates shift substantially, and uncertainty can be
+dramatically underestimated \cite{seif2017}.
+
+\subsection{How Large Is the Effect?}
+
+For large earthquakes the early loss of completeness can last longer than many
+practitioners assume. Hainzl et al.\ report for the 2023 SE T\"urkiye sequence
+that, after an M7.7 mainshock, M4 events were not fully recorded during the
+first two hours and M3 events remained incomplete for roughly two days
+\cite{hainzl2024}. van der Elst's \emph{b-positive} work independently shows
+that even basic magnitude-frequency estimation is biased under transient
+incompleteness unless the estimator is adapted \cite{vandere1st2021}.
+Woessner and Wiemer remain the standard reference for estimating magnitude of
+completeness and its uncertainty, which is directly relevant when designing
+threshold or sensitivity studies for early-window ETAS experiments
+\cite{woessner2005}.
+
+Inference for New Zealand:
+\begin{itemize}
+    \item if Kaik\={o}ura-like experiments use a fixed $M_c = 3.0$ starting at
+          2 hours after origin time, the catalog is unlikely to be complete;
+    \item the earliest windows should therefore be treated as either
+          incompleteness-aware ETAS fits or higher-threshold fits;
+    \item otherwise, apparent differences between ``2 h ETAS'' and ``7 d ETAS''
+          may be driven mainly by changing detectability rather than by the true
+          value of extra sequence information.
+\end{itemize}
+
+\section{Reasenberg--Jones Versus ETAS in Early Forecasting}
+
+The operational distinction between RJ and ETAS is fundamental.
+
+\subsection{Reasenberg--Jones}
+
+The classical Reasenberg--Jones model expresses aftershock occurrence through
+mainshock-driven Omori decay plus Gutenberg--Richter magnitude scaling
+\cite{reasenberg1989}. In practice this gives a stable, quickly deployable
+forecast, especially when no reliable short-term sequence catalog yet exists.
+This simplicity is precisely why RJ remains operationally useful.
+
+\subsection{ETAS}
+
+ETAS generalizes the process by allowing every earthquake to generate offspring,
+including higher-order triggering and, in many implementations, explicit spatial
+kernels \cite{ogata1988}. ETAS is therefore better suited to complex cascading
+sequences, migration, and multi-fault ruptures. The trade-off is that ETAS is
+more sensitive to early missing data, magnitude revisions, and region/model
+misspecification.
+
+\subsection{Operational Lesson}
+
+USGS documentation still presents RJ and ETAS as complementary operational
+tools, not as a simple ``old model versus new model'' replacement
+\cite{usgs_overview}. The Puerto Rico prospective evaluation is particularly
+important: van der Elst et al.\ found that the ETAS-based operational forecast
+substantially improved on the existing public RJ forecast for the
+2019--2021 sequence \cite{puertorico2022}. The lesson is not that RJ is
+obsolete, but that:
+
+\begin{itemize}
+    \item RJ is the correct baseline for the earliest issue times;
+    \item ETAS should be expected to outperform once the catalog quality and
+          sequence information are sufficient, especially for complex sequences.
+\end{itemize}
+
+This interpretation is also consistent with the broader operational review of
+aftershock forecasting by Hardebeck et al., which emphasizes both the enduring
+value of simple statistical baselines and the growing importance of more
+flexible triggering models in operational settings \cite{hardebeck2024}.
+
+\section{How the Literature Evaluates Data-Window Length}
+
+\subsection{The Dominant Experimental Pattern}
+
+The strongest experiment designs in the literature vary the issue time while
+keeping the target forecast horizon fixed.
+
+Examples:
+\begin{itemize}
+    \item Omi et al.\ (2013): compare 3 h, 6 h, 12 h, and 24 h learning windows
+          for later aftershock forecasting \cite{omi2013}.
+    \item Omi et al.\ (2015): fit from the first day and forecast the next
+          month using Bayesian and ensemble approaches \cite{omi2015}.
+    \item Harte (2019): evaluate forecasts archived at their actual issue
+          times during Kaik\={o}ura \cite{harte2019}.
+    \item OEF-Italy: repeatedly issue weekly forecasts from a rolling system
+          rather than from a single delayed fit \cite{spassiani2023}.
+\end{itemize}
+
+This design isolates the information value of an additional 4 hours, 18 hours,
+or 6 days of data. It avoids a common confounding mistake: changing both the
+issue time and the verification target at the same time.
+
+\subsection{Recommended Design Principle}
+
+For a clean early-versus-late ETAS comparison, define the experiment around
+\emph{issue times} and \emph{fixed forecast targets}.
+
+Recommended issue times for this repository:
+\[
+    2~\text{h},\ 6~\text{h},\ 12~\text{h},\ 1~\text{d},\ 2~\text{d},\ 3~\text{d},\ 7~\text{d}
+\]
+
+Recommended forecast targets for each issue time:
+\[
+    \text{next 1 day},\ \text{next 7 days},\ \text{next 30 days}
+\]
+
+This yields a matrix in which:
+\begin{itemize}
+    \item rows represent how much data were available at issuance;
+    \item columns represent the operational decision horizon;
+    \item each cell is a distinct forecast that must be evaluated against a
+          matching observed subcatalog.
+\end{itemize}
+
+\section{Kaik\={o}ura-Specific Lessons}
+
+Harte's real-time forecast evaluation is the most directly relevant
+Kaik\={o}ura ETAS study for experiment design in this repository
+\cite{harte2019}. Its central findings are operationally important:
+
+\begin{itemize}
+    \item ETAS underforecasted immediately after the mainshock;
+    \item ETAS overforecasted later in the sequence;
+    \item the initial mainshock magnitude was too small and was revised upward
+          substantially over the next days;
+    \item the earliest catalog quality was poor enough to affect forecast
+          performance materially.
+\end{itemize}
+
+Those results strongly support two design decisions for this repo:
+
+\begin{enumerate}
+    \item explicitly track which mainshock magnitude version and catalog version
+          were available at each issue time;
+    \item treat very early ETAS windows as a data-quality experiment, not just
+          as a parameter-update experiment.
+\end{enumerate}
+
+Rhoades et al.\ provide the complementary operational picture: New Zealand
+needed public 1-day, 7-day, and 30-day products immediately, so simpler models
+were used operationally while ETAS was evaluated in parallel
+\cite{rhoades2017}. That is a realistic benchmark philosophy for the present
+project as well.
+
+\section{pyCSEP Best Practice for Different Time Windows}
+
+The pyCSEP documentation is explicit that catalog-based forecasts and
+observations must match in time, space, and magnitude domain
+\cite{pycsep_eval,pycsep_catalog_tutorial}. For this project the key rules are:
+
+\begin{enumerate}
+    \item forecasts with different start or end times are conceptually separate
+          forecasts;
+    \item observed catalogs must be filtered to the exact same
+          start/end time, spatial region, and magnitude threshold as the
+          forecast being evaluated;
+    \item ETAS synthetic catalogs should be evaluated primarily with the
+          catalog-based tests:
+          \begin{itemize}
+              \item \texttt{number\_test},
+              \item \texttt{magnitude\_test},
+              \item \texttt{spatial\_test},
+              \item \texttt{pseudolikelihood\_test},
+              \item \texttt{resampled\_magnitude\_test},
+              \item \texttt{mll\_magnitude\_test},
+              \item \texttt{calibration\_test} when enough forecasts are
+                    available.
+          \end{itemize}
+    \item paired T and W tests are not the primary framework for comparing raw
+          stochastic ETAS catalog forecasts; those belong to a gridded
+          comparative setting and can become unstable in the presence of
+          zero-support bins.
+\end{enumerate}
+
+\section{Recommended Experiment Design for This Repository}
+
+\subsection{Forecast Matrix}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{2.5cm} >{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{4.8cm} >{\raggedright\arraybackslash}p{4.0cm}}
+\toprule
+Issue time & Data used for fitting & Recommended role & Recommended comparisons \\
+\midrule
+\endhead
+2 h & Mainshock + first 2 h & Earliest sequence-specific ETAS; likely incomplete at $M_c = 3$ & Compare against generic RJ/ETAS and against 6 h, 12 h, 1 d \\
+6 h & Mainshock + first 6 h & Early-sequence ETAS with severe but reduced incompleteness & Same fixed targets as 2 h \\
+12 h & Mainshock + first 12 h & Transitional window; often first practically useful ETAS issue time & Same fixed targets \\
+1 d & Mainshock + first 1 day & Standard early-sequence reference window in several studies & Same fixed targets \\
+2 d & Mainshock + first 2 days & Often near the end of strongest M3 incompleteness for large events & Same fixed targets \\
+3 d & Mainshock + first 3 days & Stable comparison point for early versus later updating & Same fixed targets \\
+7 d & Mainshock + first 7 days & Late-sequence benchmark already present in this repo & Compare improvement over all earlier windows \\
+\bottomrule
+\end{longtable}
+
+\subsection{Model Branches}
+
+The literature supports running at least two ETAS branches:
+
+\begin{enumerate}
+    \item \textbf{Fixed-threshold ETAS}: use the current repository design with
+          constant $M_c$.
+    \item \textbf{Incompleteness-aware ETAS}: either model
+          $M_c(t)$ explicitly or raise the effective threshold in the earliest
+          windows.
+\end{enumerate}
+
+Recommended benchmarks:
+\begin{itemize}
+    \item generic RJ;
+    \item Bayesian RJ or sequence-specific RJ if available;
+    \item generic ETAS for the earliest issue times;
+    \item STEP or a simpler short-term operational alternative where possible.
+\end{itemize}
+
+\subsection{Evaluation Plan}
+
+For each issue time and each target horizon:
+\begin{enumerate}
+    \item generate the ETAS synthetic catalog forecast;
+    \item build the matching observed catalog for the exact
+          verification window;
+    \item run pyCSEP catalog-based tests;
+    \item archive the forecast and results prospectively or
+          pseudo-prospectively;
+    \item compare skill as a function of issue time while keeping the target
+          horizon fixed.
+\end{enumerate}
+
+Primary reported metrics should be:
+\begin{itemize}
+    \item N-test quantiles;
+    \item M-test and resampled M-test quantiles;
+    \item S-test and PL-test quantiles, with explicit unsupported-event counts;
+    \item calibration only when many forecasts of the same design are
+          available.
+\end{itemize}
+
+\subsection{Repository-Specific Implementation Notes}
+
+This repository already contains a useful ladder of issue-time configs:
+\texttt{etas\_config\_2h.json},
+\texttt{etas\_config\_12h.json},
+\texttt{etas\_config\_1d.json},
+\texttt{etas\_config\_2d.json},
+\texttt{etas\_config\_3d.json}, and
+\texttt{etas\_config.json} for the 7-day benchmark.
+
+The current update adds the missing 6-hour configuration so that the experiment
+ladder better matches the early-window literature. The next methodological
+improvement should be a separate branch with time-dependent completeness or a
+systematic early-window magnitude-threshold sensitivity study.
+
+\section{Bottom-Line Recommendations}
+
+\begin{enumerate}
+    \item Do not treat the 7-day fit as the operational default for early
+          forecasting. It is a useful benchmark, not the state of the art.
+    \item Compare ETAS across issue times, not only across parameter sets.
+    \item Use fixed target horizons (next 1 day, next 7 days, next 30 days).
+    \item Expect the first hours to be completeness-limited.
+    \item Keep RJ as the baseline at very early issue times.
+    \item Evaluate ETAS with pyCSEP catalog-based tests using exactly matched
+          observed windows.
+    \item For Kaik\={o}ura-like sequences, track mainshock magnitude revision,
+          catalog version, and unsupported observed events explicitly.
+\end{enumerate}
+
+\newpage
+\begin{thebibliography}{99}
+
+\bibitem{usgs_schedule}
+U.S. Geological Survey (USGS), \emph{Operational Aftershock Forecast:
+Automatic Forecast Update Schedule}.\\
+\url{https://earthquake.usgs.gov/data/oaf/schedule.php}
+
+\bibitem{usgs_overview}
+U.S. Geological Survey (USGS), \emph{Operational Aftershock Forecast:
+Overview}.\\
+\url{https://earthquake.usgs.gov/data/oaf/overview.php}
+
+\bibitem{usgs_background}
+U.S. Geological Survey (USGS), \emph{Operational Aftershock Forecast:
+Scientific Background}.\\
+\url{https://earthquake.usgs.gov/data/oaf/background.php}
+
+\bibitem{reasenberg1989}
+P. Reasenberg and L. Jones (1989),
+\emph{Earthquake hazard after a mainshock in California},
+Science, 243(4895), 1173--1176.\\
+\url{https://doi.org/10.1126/science.243.4895.1173}
+
+\bibitem{ogata1988}
+Y. Ogata (1988),
+\emph{Statistical Models for Earthquake Occurrences and Residual Analysis for
+Point Processes},
+Journal of the American Statistical Association, 83(401), 9--27.\\
+\url{https://doi.org/10.1080/01621459.1988.10478560}
+
+\bibitem{ogata2006}
+Y. Ogata and K. Katsura (2006),
+\emph{Immediate and updated forecasting of aftershock hazard},
+Geophysical Research Letters, 33, L10305.\\
+\url{https://doi.org/10.1029/2006GL025888}
+
+\bibitem{omi2013}
+T. Omi, Y. Ogata, Y. Hirata, and K. Aihara (2013),
+\emph{Forecasting large aftershocks within one day after the main shock},
+Scientific Reports, 3, 2218.\\
+\url{https://doi.org/10.1038/srep02218}
+
+\bibitem{omi2014}
+T. Omi, Y. Ogata, Y. Hirata, and K. Aihara (2014),
+\emph{Estimating the ETAS model from an early aftershock sequence},
+Geophysical Research Letters, 41(3), 850--857.\\
+\url{https://doi.org/10.1002/2013GL058958}
+
+\bibitem{omi2015}
+T. Omi, Y. Ogata, Y. Hirata, and K. Aihara (2015),
+\emph{Intermediate-term forecasting of aftershocks from an early aftershock
+sequence: Bayesian and ensemble forecasting approaches},
+Journal of Geophysical Research: Solid Earth, 120(4), 2561--2571.\\
+\url{https://doi.org/10.1002/2014JB011456}
+
+\bibitem{page2016}
+M. T. Page, N. J. van der Elst, J. L. Hardebeck, K. R. Felzer, and
+A. J. Michael (2016),
+\emph{Three ingredients for improved global aftershock forecasts:
+Tectonic region, time-dependent catalog incompleteness, and
+intersequence variability},
+Bulletin of the Seismological Society of America, 106(5), 2290--2301.\\
+\url{https://doi.org/10.1785/0120160073}
+
+\bibitem{seif2017}
+S. Seif, M. T. Page, J. E. Zechar, M. E. Morgan, and J. T. McBrearty (2017),
+\emph{Estimating ETAS: The effects of truncation, missing data, and model
+assumptions},
+Journal of Geophysical Research: Solid Earth, 122(6), 4490--4510.\\
+\url{https://doi.org/10.1002/2016JB012809}
+
+\bibitem{woessner2005}
+J. Woessner and S. Wiemer (2005),
+\emph{Assessing the quality of earthquake catalogues: Estimating the
+magnitude of completeness and its uncertainty},
+Bulletin of the Seismological Society of America, 95(2), 684--698.\\
+\url{https://doi.org/10.1785/0120040007}
+
+\bibitem{lippiello2019}
+E. Lippiello, F. Petrillo, C. Godano, and L. de Arcangelis (2019),
+\emph{Post Seismic Catalog Incompleteness and Aftershock Forecasting},
+Geosciences, 9(8), 355.\\
+\url{https://doi.org/10.3390/geosciences9080355}
+
+\bibitem{vandere1st2021}
+N. J. van der Elst (2021),
+\emph{B-positive: A robust estimator of aftershock magnitude distribution in
+transiently incomplete catalogs},
+Journal of Geophysical Research: Solid Earth, 126(2), e2020JB021027.\\
+\url{https://doi.org/10.1029/2020JB021027}
+
+\bibitem{hainzl2024}
+S. Hainzl, T. Kumazawa, and Y. Ogata (2024),
+\emph{Aftershock forecasts based on incomplete earthquake catalogues:
+ETASI model application to the 2023 SE T\"urkiye earthquake sequence},
+Geophysical Journal International, 236(3), 1609--1619.\\
+\url{https://doi.org/10.1093/gji/ggae006}
+
+\bibitem{zhuang2011}
+J. Zhuang (2011),
+\emph{Next-day earthquake forecasts for the Japan region generated by the
+ETAS model},
+Earth, Planets and Space, 63(3), 207--216.\\
+\url{https://doi.org/10.5047/eps.2010.12.010}
+
+\bibitem{csep_etas}
+Collaboratory for the Study of Earthquake Predictability (CSEP),
+\emph{ETAS and ETASV1.1 models}.\\
+\url{https://cseptesting.org/etas-model/}
+
+\bibitem{rhoades2017}
+D. Rhoades, M. Gerstenberger, A. Christophersen, and D. Harte (2017),
+\emph{Earthquake forecasts and their applications following the M7.8 2016
+Kaik\={o}ura earthquake}. Southern California Earthquake Center Annual Meeting
+Proceedings / Abstract page.\\
+\url{https://central.scec.org/publication/7689}
+
+\bibitem{harte2019}
+D. Harte (2019),
+\emph{Evaluation of earthquake stochastic models based on their real-time
+forecasts: a case study of Kaik\={o}ura 2016},
+Geophysical Journal International, 217(3), 1894--1913.\\
+\url{https://doi.org/10.1093/gji/ggz088}
+
+\bibitem{marzocchi2014}
+W. Marzocchi, A. M. Lombardi, and E. Casarotti (2014),
+\emph{The establishment of an operational earthquake forecasting system in
+Italy},
+Seismological Research Letters, 85(5), 961--969.\\
+\url{https://doi.org/10.1785/0220130219}
+
+\bibitem{spassiani2023}
+I. Spassiani, G. Falcone, M. Murru, and W. Marzocchi (2023),
+\emph{Operational Earthquake Forecasting in Italy: validation after 10 yr of
+operativity},
+Geophysical Journal International, 234(3), 2501--2518.\\
+\url{https://doi.org/10.1093/gji/ggad256}
+
+\bibitem{puertorico2022}
+N. J. van der Elst, J. L. Hardebeck, A. J. Michael, S. K. McBride, and
+E. Vanacore (2022),
+\emph{Prospective and retrospective evaluation of the U.S. Geological Survey
+public aftershock forecast for the 2019--2021 Southwest Puerto Rico
+Earthquake and aftershocks},
+Seismological Research Letters, 93(2A), 620--640.\\
+\url{https://pubs.usgs.gov/publication/70229086}
+
+\bibitem{hardebeck2024}
+J. L. Hardebeck, A. L. Llenos, A. J. Michael, M. T. Page, M. Schneider, and
+N. J. van der Elst (2024),
+\emph{Aftershock forecasting},
+Annual Review of Earth and Planetary Sciences, 52, 61--84.\\
+\url{https://doi.org/10.1146/annurev-earth-040522-102129}
+
+\bibitem{pycsep_eval}
+pyCSEP documentation, \emph{Evaluations}.\\
+\url{https://docs.cseptesting.org/concepts/evaluations.html}
+
+\bibitem{pycsep_catalog_tutorial}
+pyCSEP documentation, \emph{Catalog-based Forecast Evaluation Tutorial}.\\
+\url{https://docs.cseptesting.org/tutorials/catalog_forecast_evaluation.html}
+
+\end{thebibliography}
+
+\end{document}

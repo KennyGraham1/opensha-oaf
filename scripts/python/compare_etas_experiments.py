@@ -71,6 +71,15 @@ EXPERIMENTS: list[ExperimentDef] = [
         pycsep_dir="build/pycsep_2h",
     ),
     ExperimentDef(
+        label="6 h data",
+        data_days=6/24,
+        forecast_start=6/24,
+        forecast_end=14.5,
+        model_type="sequence-specific",
+        summary_file="nz_etas_simulations_6h.txt",
+        pycsep_dir="build/pycsep_6h",
+    ),
+    ExperimentDef(
         label="12 h data",
         data_days=0.5,
         forecast_start=0.5,
