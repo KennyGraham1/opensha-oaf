@@ -1,0 +1,36 @@
+ETAS Forecast Results
+=====================
+Event: 2016p858000
+Analysis Date: Tue Mar 31 22:19:35 NZDT 2026
+Mag Complete (Mc): 3.0
+Num Simulations: 1000
+
+--- Parameters Used (sequence-specific MLE) ---
+ams-value: -2.7500
+a-value: -2.0000
+p-value: 0.9000
+c-value: 0.1000
+b-value: 1.0000
+
+--- Forecast (Days 0.5-14.5) ---
+Expected Number of Events:
+  M>=3.0: 1188.2518
+  M>=4.0: 118.8252
+  M>=5.0: 11.8825
+  M>=6.0: 1.1883
+
+Probability of >=1 Event:
+  M>=3.0: 100.0000%
+  M>=4.0: 100.0000%
+  M>=5.0: 99.9000%
+  M>=6.0: 64.7000%
+
+--- Uncertainty (from 1000 simulations) ---
+Percentiles of event counts in forecast window:
+  M>=3.0:  5th=725  Median=1188  95th=1579
+  M>=4.0:  5th=66  Median=116  95th=163
+  M>=5.0:  5th=4  Median=11  95th=20
+  M>=6.0:  5th=0  Median=1  95th=3
+
+--- Simulated Catalogs ---
+Saved to directory: simulated_catalogs_12h

@@ -1,0 +1,20 @@
+{
+    "min_mw": 3.0,
+    "name": "Catalog N-Test Calibration Test",
+    "obs_catalog_repr": "\n        Name: GeoNet observed 2016p858000 days 7.0-14.0\n\n        Start Date: 2016-11-20 11:07:36.069000+00:00\n        End Date: 2016-11-21 09:57:28.192000+00:00\n\n        Latitude: (-43.03658295, -38.29319382)\n        Longitude: (171.704834, 177.7127991)\n\n        Min Mw: 3.008477922\n        Max Mw: 4.590429625\n\n        Event Count: 50\n        ",
+    "obs_name": "GeoNet observed 2016p858000 days 7.0-14.0",
+    "observed_statistic": 0.16000000000000003,
+    "quantile": 0.9800289364735593,
+    "sim_name": "Days 7.0-8.0",
+    "status": "normal",
+    "test_distribution": [
+        0.229,
+        0.807,
+        0.567,
+        0.047,
+        0.312,
+        0.546,
+        0.84
+    ],
+    "type": "CalibrationTestResult"
+}

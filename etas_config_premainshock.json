@@ -4,7 +4,7 @@
 
     "dataWindow": {
         "minDays": 0.0,
-        "maxDays": 0.0
+        "maxDays": 0.5
     },
 
     "forecastWindow": {
