@@ -1,0 +1,107 @@
+# Supplement Package Index
+
+- Root: `/home/kennyg/projects/ETASModels/opensha-oaf`
+- File count indexed: `98`
+- Checksums: `/home/kennyg/projects/ETASModels/opensha-oaf/build/supplement/SHA256SUMS.txt`
+- Reproduction script: `/home/kennyg/projects/ETASModels/opensha-oaf/build/supplement/reproduce_publication.sh`
+
+## Included Paths
+
+- `build/comparison/geonet_2016p858000_d0_14p5_mc3_observed.csv`
+- `build/comparison/publication_change_point_analysis.csv`
+- `build/comparison/publication_change_point_summary.md`
+- `build/comparison/publication_change_points.png`
+- `build/comparison/publication_daily_decomposition.png`
+- `build/comparison/publication_daily_metrics.csv`
+- `build/comparison/publication_diagnostics_summary.md`
+- `build/comparison/publication_magnitude_threshold_sensitivity.csv`
+- `build/comparison/publication_magnitude_threshold_sensitivity.md`
+- `build/comparison/publication_magnitude_threshold_sensitivity.png`
+- `build/comparison/publication_operational_decision_table.csv`
+- `build/comparison/publication_operational_decision_table.md`
+- `build/comparison/publication_probabilistic_scores.csv`
+- `build/comparison/publication_probabilistic_scores.png`
+- `build/comparison/publication_probabilistic_summary.md`
+- `build/comparison/publication_regime_diagnostics.png`
+- `build/comparison/publication_regime_metrics.csv`
+- `build/comparison/publication_reproducibility_metadata.md`
+- `build/comparison/publication_rj_baseline_comparison.csv`
+- `build/comparison/publication_rj_baseline_summary.md`
+- `build/comparison/publication_rj_vs_etas.png`
+- `build/pycsep/evaluation_json/catalog_magnitude_test.json`
+- `build/pycsep/evaluation_json/catalog_mll_magnitude_test.json`
+- `build/pycsep/evaluation_json/catalog_number_test.json`
+- `build/pycsep/evaluation_json/catalog_pseudolikelihood_test.json`
+- `build/pycsep/evaluation_json/catalog_resampled_magnitude_test.json`
+- `build/pycsep/evaluation_json/catalog_spatial_test.json`
+- `build/pycsep/evaluation_json/rolling_number_calibration.json`
+- `build/pycsep_12h/evaluation_json/catalog_magnitude_test.json`
+- `build/pycsep_12h/evaluation_json/catalog_mll_magnitude_test.json`
+- `build/pycsep_12h/evaluation_json/catalog_number_test.json`
+- `build/pycsep_12h/evaluation_json/catalog_pseudolikelihood_test.json`
+- `build/pycsep_12h/evaluation_json/catalog_resampled_magnitude_test.json`
+- `build/pycsep_12h/evaluation_json/catalog_spatial_test.json`
+- `build/pycsep_12h/evaluation_json/rolling_number_calibration.json`
+- `build/pycsep_1d/evaluation_json/catalog_magnitude_test.json`
+- `build/pycsep_1d/evaluation_json/catalog_mll_magnitude_test.json`
+- `build/pycsep_1d/evaluation_json/catalog_number_test.json`
+- `build/pycsep_1d/evaluation_json/catalog_pseudolikelihood_test.json`
+- `build/pycsep_1d/evaluation_json/catalog_resampled_magnitude_test.json`
+- `build/pycsep_1d/evaluation_json/catalog_spatial_test.json`
+- `build/pycsep_1d/evaluation_json/rolling_number_calibration.json`
+- `build/pycsep_2d/evaluation_json/catalog_magnitude_test.json`
+- `build/pycsep_2d/evaluation_json/catalog_mll_magnitude_test.json`
+- `build/pycsep_2d/evaluation_json/catalog_number_test.json`
+- `build/pycsep_2d/evaluation_json/catalog_pseudolikelihood_test.json`
+- `build/pycsep_2d/evaluation_json/catalog_resampled_magnitude_test.json`
+- `build/pycsep_2d/evaluation_json/catalog_spatial_test.json`
+- `build/pycsep_2d/evaluation_json/rolling_number_calibration.json`
+- `build/pycsep_2h/evaluation_json/catalog_magnitude_test.json`
+- `build/pycsep_2h/evaluation_json/catalog_mll_magnitude_test.json`
+- `build/pycsep_2h/evaluation_json/catalog_number_test.json`
+- `build/pycsep_2h/evaluation_json/catalog_pseudolikelihood_test.json`
+- `build/pycsep_2h/evaluation_json/catalog_resampled_magnitude_test.json`
+- `build/pycsep_2h/evaluation_json/catalog_spatial_test.json`
+- `build/pycsep_2h/evaluation_json/rolling_number_calibration.json`
+- `build/pycsep_3d/evaluation_json/catalog_magnitude_test.json`
+- `build/pycsep_3d/evaluation_json/catalog_mll_magnitude_test.json`
+- `build/pycsep_3d/evaluation_json/catalog_number_test.json`
+- `build/pycsep_3d/evaluation_json/catalog_pseudolikelihood_test.json`
+- `build/pycsep_3d/evaluation_json/catalog_resampled_magnitude_test.json`
+- `build/pycsep_3d/evaluation_json/catalog_spatial_test.json`
+- `build/pycsep_3d/evaluation_json/rolling_number_calibration.json`
+- `build/pycsep_6h/evaluation_json/catalog_magnitude_test.json`
+- `build/pycsep_6h/evaluation_json/catalog_mll_magnitude_test.json`
+- `build/pycsep_6h/evaluation_json/catalog_number_test.json`
+- `build/pycsep_6h/evaluation_json/catalog_pseudolikelihood_test.json`
+- `build/pycsep_6h/evaluation_json/catalog_resampled_magnitude_test.json`
+- `build/pycsep_6h/evaluation_json/catalog_spatial_test.json`
+- `build/pycsep_6h/evaluation_json/rolling_number_calibration.json`
+- `build/pycsep_premainshock/evaluation_json/catalog_magnitude_test.json`
+- `build/pycsep_premainshock/evaluation_json/catalog_mll_magnitude_test.json`
+- `build/pycsep_premainshock/evaluation_json/catalog_number_test.json`
+- `build/pycsep_premainshock/evaluation_json/catalog_pseudolikelihood_test.json`
+- `build/pycsep_premainshock/evaluation_json/catalog_resampled_magnitude_test.json`
+- `build/pycsep_premainshock/evaluation_json/catalog_spatial_test.json`
+- `build/pycsep_premainshock/evaluation_json/rolling_number_calibration.json`
+- `docs/operational_etas_experiment_design.tex`
+- `etas_config.json`
+- `etas_config_12h.json`
+- `etas_config_1d.json`
+- `etas_config_2d.json`
+- `etas_config_2h.json`
+- `etas_config_3d.json`
+- `etas_config_6h.json`
+- `etas_config_premainshock.json`
+- `nz_etas_simulations.txt`
+- `nz_etas_simulations_12h.txt`
+- `nz_etas_simulations_1d.txt`
+- `nz_etas_simulations_2d.txt`
+- `nz_etas_simulations_2h.txt`
+- `nz_etas_simulations_3d.txt`
+- `nz_etas_simulations_6h.txt`
+- `nz_etas_simulations_premainshock.txt`
+- `run_etas_pipeline.sh`
+- `scripts/python/build_publication_figures.py`
+- `scripts/python/cache_full_observed_catalog.py`
+- `scripts/python/compare_etas_experiments.py`

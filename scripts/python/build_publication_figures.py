@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import csv
+import hashlib
 import json
 import os
 import re
@@ -79,6 +81,17 @@ REGIME_MARKERS: dict[str, str] = {
     "2d":           "P",
     "3d":           "h",
     "7d":           "*",
+}
+
+RJ_ISSUE_DAYS: dict[str, float] = {
+    "premainshock": 0.5,  # generic run is conditioned on first 0.5 day catalog
+    "2h": 2.0 / 24.0,
+    "6h": 6.0 / 24.0,
+    "12h": 12.0 / 24.0,
+    "1d": 1.0,
+    "2d": 2.0,
+    "3d": 3.0,
+    "7d": 7.0,
 }
 
 
@@ -742,6 +755,22 @@ def _parse_mainshock_time(path: Path) -> datetime:
     return dt.astimezone(timezone.utc)
 
 
+def _parse_iso_datetime(raw: str) -> datetime:
+    value = str(raw).strip()
+    if value.endswith("Z"):
+        value = value[:-1] + "+00:00"
+    dt = datetime.fromisoformat(value)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def _omori_integral(t0: float, t1: float, p: float, c: float) -> float:
+    if abs(p - 1.0) < 1.0e-12:
+        return float(np.log((t1 + c) / (t0 + c)))
+    return float(((t1 + c) ** (1.0 - p) - (t0 + c) ** (1.0 - p)) / (1.0 - p))
+
+
 def _parse_observed_daily_counts(observed_csv: Path, mainshock_time: datetime) -> np.ndarray:
     bins = np.arange(7.0, 15.0, 1.0)
     counts = np.zeros(7, dtype=int)
@@ -758,7 +787,7 @@ def _parse_observed_daily_counts(observed_csv: Path, mainshock_time: datetime) -
             raw = parts[idx]
             if not raw:
                 continue
-            dt = datetime.fromisoformat(raw).replace(tzinfo=timezone.utc)
+            dt = _parse_iso_datetime(raw)
             rel_days = (dt - mainshock_time).total_seconds() / 86400.0
             if 7.0 <= rel_days < 14.0:
                 day = int(np.floor(rel_days)) - 7
@@ -1292,6 +1321,513 @@ def make_probabilistic_scores_figure(
     return metrics
 
 
+def _read_csep_ascii_events(path: Path, mainshock_time: datetime) -> list[dict[str, float | str]]:
+    events: list[dict[str, float | str]] = []
+    with path.open("r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for idx, row in enumerate(reader):
+            try:
+                mag = float(row.get("mag", "nan"))
+            except Exception:
+                continue
+            time_raw = row.get("time_string", "")
+            if not time_raw:
+                continue
+            try:
+                dt = _parse_iso_datetime(time_raw)
+            except Exception:
+                continue
+            rel_days = (dt - mainshock_time).total_seconds() / 86400.0
+            event_id = row.get("event_id") or f"anon_{idx:06d}"
+            events.append({"event_id": event_id, "rel_days": float(rel_days), "mag": mag})
+    return events
+
+
+def _build_canonical_rj_events(root: Path, mainshock_time: datetime) -> list[dict[str, float | str]]:
+    early_path = root / "build/pycsep/cache/2016p858000_d0_14p5_mc3_observed.csv"
+    late_path = root / "build/pycsep_2h/cache/2016p858000_d0p08333_14p5_mc3_observed.csv"
+    if not early_path.exists():
+        raise FileNotFoundError(
+            f"Required file missing for RJ baseline: {early_path}. "
+            "Generate it via the pyCSEP GeoNet query step."
+        )
+    if not late_path.exists():
+        raise FileNotFoundError(f"Required file missing for RJ baseline: {late_path}")
+
+    cutoff_days = 2.0 / 24.0
+    early_events = _read_csep_ascii_events(early_path, mainshock_time)
+    late_events = _read_csep_ascii_events(late_path, mainshock_time)
+
+    merged: dict[str, dict[str, float | str]] = {}
+    for ev in late_events:
+        rel = float(ev["rel_days"])
+        if cutoff_days <= rel < 14.5:
+            merged[str(ev["event_id"])] = ev
+    for ev in early_events:
+        rel = float(ev["rel_days"])
+        if 0.0 <= rel < cutoff_days:
+            key = str(ev["event_id"])
+            if key not in merged:
+                merged[key] = ev
+    return sorted(merged.values(), key=lambda e: float(e["rel_days"]))
+
+
+def _sample_poisson_distribution(mean_rate: float, rng: np.random.Generator, n_samples: int = 200000) -> np.ndarray:
+    mean_rate = max(float(mean_rate), 1.0e-12)
+    return rng.poisson(mean_rate, size=n_samples).astype(float)
+
+
+def make_rj_baseline_comparison(
+    rows: list[dict],
+    probabilistic_metrics: list[dict[str, Any]],
+    root: Path,
+    output_csv: Path,
+    output_png: Path,
+    output_md: Path,
+    fixed_p: float = 1.0,
+    fixed_c_days: float = 0.1,
+) -> list[dict[str, Any]]:
+    mainshock_time = _parse_mainshock_time(root / "build/pycsep/cache/2016p858000_mainshock.json")
+    events = _build_canonical_rj_events(root, mainshock_time)
+    if not events:
+        raise RuntimeError("No canonical observed events available for RJ baseline.")
+
+    n_obs = int(rows[0]["n_obs"])
+    pm_by_key = {str(m["key"]): m for m in probabilistic_metrics}
+    rng = np.random.default_rng(20260402)
+
+    results: list[dict[str, Any]] = []
+    for row in rows:
+        key = str(row["key"])
+        issue_days = RJ_ISSUE_DAYS.get(key, float(row["issue_hours"]) / 24.0)
+        if issue_days <= 0.0:
+            issue_days = 1.0 / 24.0
+
+        train_count = int(
+            sum(
+                1
+                for ev in events
+                if 0.0 <= float(ev["rel_days"]) < issue_days and float(ev["mag"]) >= 3.0
+            )
+        )
+
+        denom = _omori_integral(0.0, issue_days, fixed_p, fixed_c_days)
+        numer = _omori_integral(7.0, 14.0, fixed_p, fixed_c_days)
+        if denom <= 0.0:
+            raise RuntimeError(f"Invalid RJ denominator integral for issue_days={issue_days}")
+        rj_mean = float(train_count * numer / denom)
+        rj_samples = _sample_poisson_distribution(rj_mean, rng=rng, n_samples=200000)
+
+        rj_median = float(np.median(rj_samples))
+        rj_p05 = float(np.percentile(rj_samples, 5.0))
+        rj_p95 = float(np.percentile(rj_samples, 95.0))
+        rj_q_lo = float(np.mean(rj_samples <= n_obs))
+        rj_q_hi = float(np.mean(rj_samples >= n_obs))
+        rj_crps = _ensemble_crps(rj_samples, float(n_obs))
+        rj_is90, _, _, rj_cov = _interval_score(rj_samples, float(n_obs), alpha=0.1)
+
+        etas_crps = float(pm_by_key[key]["weekly_crps"]) if key in pm_by_key else np.nan
+        etas_cov = float(pm_by_key[key]["weekly_coverage_90"]) if key in pm_by_key else np.nan
+        etas_ratio = float(row["ensemble_median"]) / float(row["n_obs"])
+
+        results.append(
+            {
+                "key": key,
+                "label": str(row["label"]),
+                "issue_hours": float(row["issue_hours"]),
+                "issue_days": issue_days,
+                "rj_fixed_p": fixed_p,
+                "rj_fixed_c_days": fixed_c_days,
+                "rj_train_count": train_count,
+                "rj_mean_count": rj_mean,
+                "rj_median_count": rj_median,
+                "rj_p05_count": rj_p05,
+                "rj_p95_count": rj_p95,
+                "rj_count_ratio": rj_mean / float(n_obs),
+                "rj_n_q_lo": rj_q_lo,
+                "rj_n_q_hi": rj_q_hi,
+                "rj_weekly_crps": rj_crps,
+                "rj_weekly_interval_score_90": rj_is90,
+                "rj_weekly_coverage_90": float(rj_cov),
+                "etas_count_ratio": etas_ratio,
+                "etas_weekly_crps": etas_crps,
+                "etas_weekly_coverage_90": etas_cov,
+                "rj_beats_etas_crps": int(rj_crps < etas_crps),
+            }
+        )
+
+    output_csv.parent.mkdir(parents=True, exist_ok=True)
+    headers = list(results[0].keys())
+    with output_csv.open("w", encoding="utf-8") as f:
+        f.write(",".join(headers) + "\n")
+        for r in results:
+            f.write(",".join(str(r[h]) for h in headers) + "\n")
+
+    issue = np.array([float(r["issue_hours"]) for r in results], dtype=float)
+    etas_ratio = np.array([float(r["etas_count_ratio"]) for r in results], dtype=float)
+    rj_ratio = np.array([float(r["rj_count_ratio"]) for r in results], dtype=float)
+    etas_crps = np.array([float(r["etas_weekly_crps"]) for r in results], dtype=float)
+    rj_crps = np.array([float(r["rj_weekly_crps"]) for r in results], dtype=float)
+    labels = [str(r["label"]) for r in results]
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5.6), constrained_layout=True)
+    fig.suptitle(
+        "ETAS vs Reasenberg-Jones (RJ) Baseline by Issue Time",
+        fontsize=13,
+        fontweight="bold",
+    )
+
+    ax = axes[0]
+    ax.plot(issue, etas_ratio, marker="o", linewidth=2.2, color="#1f78b4", label="ETAS median / observed")
+    ax.plot(issue, rj_ratio, marker="s", linewidth=2.2, color="#e66101", label="RJ mean / observed")
+    ax.axhline(1.0, color="#333333", linestyle="--", linewidth=1.1)
+    ax.set_xscale("log")
+    ax.set_xticks(issue, labels, rotation=30, ha="right")
+    ax.set_ylabel("Count ratio")
+    ax.set_title("A) Count-Ratio Comparison (target = 1)")
+    ax.grid(alpha=0.3, linestyle=":")
+    ax.legend(loc="best", fontsize=8)
+
+    ax = axes[1]
+    ax.plot(issue, etas_crps, marker="o", linewidth=2.2, color="#1f78b4", label="ETAS weekly CRPS")
+    ax.plot(issue, rj_crps, marker="s", linewidth=2.2, color="#e66101", label="RJ weekly CRPS")
+    ax.set_xscale("log")
+    ax.set_xticks(issue, labels, rotation=30, ha="right")
+    ax.set_ylabel("Weekly CRPS (lower is better)")
+    ax.set_title("B) Probabilistic Skill Comparison")
+    ax.grid(alpha=0.3, linestyle=":")
+    ax.legend(loc="best", fontsize=8)
+
+    output_png.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_png, dpi=220, bbox_inches="tight")
+    plt.close(fig)
+
+    rj_better_keys = [str(r["label"]) for r in results if int(r["rj_beats_etas_crps"]) == 1]
+    lines = [
+        "# RJ Baseline Comparison Summary",
+        "",
+        f"- RJ specification: fixed `p={fixed_p:.2f}`, fixed `c={fixed_c_days:.2f}` day, productivity estimated from observed count in [0, issue-time).",
+        "- Canonical observed catalog: stitched from `build/pycsep/cache/2016p858000_d0_14p5_mc3_observed.csv` (0–2h) and",
+        "  `build/pycsep_2h/cache/2016p858000_d0p08333_14p5_mc3_observed.csv` (2h–14.5d) to remain consistent with the fixed-horizon 7–14d target (`N_obs=323`).",
+        f"- RJ has lower weekly CRPS than ETAS at: `{', '.join(rj_better_keys) if rj_better_keys else 'none'}`.",
+        "",
+    ]
+    output_md.write_text("\n".join(lines), encoding="utf-8")
+    return results
+
+
+def _load_observed_threshold_counts(
+    observed_csv: Path,
+    mainshock_time: datetime,
+    thresholds: list[float],
+    t_start: float = 7.0,
+    t_end: float = 14.0,
+) -> dict[float, int]:
+    counts = {thr: 0 for thr in thresholds}
+    with observed_csv.open("r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            try:
+                mag = float(row.get("mag", "nan"))
+            except Exception:
+                continue
+            try:
+                dt = _parse_iso_datetime(str(row.get("time_string", "")))
+            except Exception:
+                continue
+            rel_days = (dt - mainshock_time).total_seconds() / 86400.0
+            if not (t_start <= rel_days < t_end):
+                continue
+            for thr in thresholds:
+                if mag >= thr:
+                    counts[thr] += 1
+    return counts
+
+
+def _load_sim_threshold_counts(
+    sim_dir: Path,
+    thresholds: list[float],
+    t_start: float = 7.0,
+    t_end: float = 14.0,
+) -> dict[float, np.ndarray]:
+    threshold_arrays: dict[float, list[int]] = {thr: [] for thr in thresholds}
+    for path in sorted(sim_dir.glob("sim_*.txt")):
+        counts = {thr: 0 for thr in thresholds}
+        with path.open("r", encoding="utf-8") as f:
+            for raw in f:
+                line = raw.strip()
+                if not line or line.startswith("#") or line.startswith("Time "):
+                    continue
+                parts = line.split()
+                if len(parts) < 2:
+                    continue
+                try:
+                    t = float(parts[0])
+                    mag = float(parts[1])
+                except Exception:
+                    continue
+                if t < t_start or t >= t_end:
+                    continue
+                for thr in thresholds:
+                    if mag >= thr:
+                        counts[thr] += 1
+        for thr in thresholds:
+            threshold_arrays[thr].append(counts[thr])
+    return {thr: np.asarray(vals, dtype=float) for thr, vals in threshold_arrays.items()}
+
+
+def make_magnitude_threshold_sensitivity(
+    rows: list[dict],
+    root: Path,
+    output_csv: Path,
+    output_png: Path,
+    output_md: Path,
+) -> list[dict[str, Any]]:
+    mainshock_time = _parse_mainshock_time(root / "build/pycsep/cache/2016p858000_mainshock.json")
+    observed_csv = root / "build/pycsep/cache/2016p858000_d7_14_mc3_observed.csv"
+    thresholds = [3.0, 4.0, 5.0, 6.0]
+    obs_counts = _load_observed_threshold_counts(observed_csv, mainshock_time, thresholds)
+
+    rows_out: list[dict[str, Any]] = []
+    for row in rows:
+        sim_dir = _sim_dir_for_key(root, str(row["key"]))
+        sims_by_thr = _load_sim_threshold_counts(sim_dir, thresholds)
+        for thr in thresholds:
+            sims = sims_by_thr[thr]
+            n_obs = float(obs_counts[thr])
+            med = float(np.median(sims))
+            p05 = float(np.percentile(sims, 5.0))
+            p95 = float(np.percentile(sims, 95.0))
+            q_lo = float(np.mean(sims <= n_obs))
+            q_hi = float(np.mean(sims >= n_obs))
+            crps = _ensemble_crps(sims, n_obs)
+            rows_out.append(
+                {
+                    "key": str(row["key"]),
+                    "label": str(row["label"]),
+                    "issue_hours": float(row["issue_hours"]),
+                    "threshold": float(thr),
+                    "observed_count": int(obs_counts[thr]),
+                    "sim_median": med,
+                    "sim_p05": p05,
+                    "sim_p95": p95,
+                    "median_ratio": med / max(n_obs, 1.0),
+                    "n_q_lo": q_lo,
+                    "n_q_hi": q_hi,
+                    "weekly_crps": crps,
+                }
+            )
+
+    output_csv.parent.mkdir(parents=True, exist_ok=True)
+    headers = list(rows_out[0].keys())
+    with output_csv.open("w", encoding="utf-8") as f:
+        f.write(",".join(headers) + "\n")
+        for r in rows_out:
+            f.write(",".join(str(r[h]) for h in headers) + "\n")
+
+    issue_hours = np.array([float(r["issue_hours"]) for r in rows], dtype=float)
+    labels = [str(r["label"]) for r in rows]
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5.6), constrained_layout=True)
+    fig.suptitle(
+        "Magnitude-Threshold Sensitivity (Fixed Horizon 7–14d)",
+        fontsize=13,
+        fontweight="bold",
+    )
+
+    color_map = {3.0: "#1b9e77", 4.0: "#7570b3", 5.0: "#d95f02", 6.0: "#e7298a"}
+    for thr in thresholds:
+        subset = [r for r in rows_out if abs(float(r["threshold"]) - thr) < 1.0e-9]
+        subset.sort(key=lambda r: float(r["issue_hours"]))
+        ratio = np.array([float(r["median_ratio"]) for r in subset], dtype=float)
+        crps = np.array([float(r["weekly_crps"]) for r in subset], dtype=float)
+        axes[0].plot(issue_hours, ratio, marker="o", linewidth=2.0, color=color_map[thr], label=f"M≥{thr:.0f}")
+        axes[1].plot(issue_hours, crps, marker="o", linewidth=2.0, color=color_map[thr], label=f"M≥{thr:.0f}")
+
+    axes[0].axhline(1.0, color="#333333", linestyle="--", linewidth=1.1)
+    axes[0].set_xscale("log")
+    axes[0].set_xticks(issue_hours, labels, rotation=30, ha="right")
+    axes[0].set_ylabel("Median / observed count")
+    axes[0].set_title("A) Count Ratio by Magnitude Threshold")
+    axes[0].grid(alpha=0.3, linestyle=":")
+    axes[0].legend(loc="best", fontsize=8)
+
+    axes[1].set_xscale("log")
+    axes[1].set_xticks(issue_hours, labels, rotation=30, ha="right")
+    axes[1].set_ylabel("Weekly CRPS")
+    axes[1].set_title("B) Weekly CRPS by Magnitude Threshold")
+    axes[1].grid(alpha=0.3, linestyle=":")
+    axes[1].legend(loc="best", fontsize=8)
+
+    output_png.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_png, dpi=220, bbox_inches="tight")
+    plt.close(fig)
+
+    lines = [
+        "# Magnitude-Threshold Sensitivity Summary",
+        "",
+        "- Thresholds evaluated from the same fixed-horizon catalogs: `M>=3,4,5,6`.",
+        "- Observed counts derived from `build/pycsep/cache/2016p858000_d7_14_mc3_observed.csv`.",
+        "- This analysis evaluates threshold robustness of the existing run set; it is not a rerun with alternate `Mc` fitting values.",
+        "",
+    ]
+    output_md.write_text("\n".join(lines), encoding="utf-8")
+    return rows_out
+
+
+def write_operational_decision_table(
+    rows: list[dict],
+    probabilistic_metrics: list[dict[str, Any]],
+    rj_metrics: list[dict[str, Any]],
+    output_csv: Path,
+    output_md: Path,
+) -> None:
+    pm = {str(m["key"]): m for m in probabilistic_metrics}
+    rj = {str(m["key"]): m for m in rj_metrics}
+
+    decision_rows: list[dict[str, Any]] = []
+    for row in rows:
+        key = str(row["key"])
+        n_class = classify_n_test(row["n_q_lo"], row["n_q_hi"])
+        rolling_p = float(row["rolling_p"])
+        ratio = float(row["ensemble_median"]) / float(row["n_obs"])
+        weekly_cov = float(pm[key]["weekly_coverage_90"]) if key in pm else 0.0
+        etas_crps = float(pm[key]["weekly_crps"]) if key in pm else np.nan
+        rj_crps = float(rj[key]["rj_weekly_crps"]) if key in rj else np.nan
+        rj_beats = bool(np.isfinite(rj_crps) and np.isfinite(etas_crps) and (rj_crps < etas_crps))
+
+        if (n_class == "pass") and (rolling_p >= 0.05) and (weekly_cov >= 1.0) and (0.8 <= ratio <= 1.2):
+            status = "GO"
+            reason = "count-consistent, temporally calibrated, and covered"
+        elif (n_class == "pass") and (rolling_p >= 0.01) and (weekly_cov >= 0.5):
+            status = "CAUTION"
+            reason = "partial calibration; issue with sharpness or temporal allocation"
+        else:
+            status = "NO-GO"
+            reason = "fails one or more core reliability checks"
+
+        decision_rows.append(
+            {
+                "key": key,
+                "label": str(row["label"]),
+                "issue_hours": float(row["issue_hours"]),
+                "n_test_class": n_class,
+                "rolling_p": rolling_p,
+                "weekly_coverage_90": weekly_cov,
+                "median_ratio": ratio,
+                "etas_weekly_crps": etas_crps,
+                "rj_weekly_crps": rj_crps,
+                "rj_beats_etas_crps": int(rj_beats),
+                "operational_status": status,
+                "decision_reason": reason,
+            }
+        )
+
+    output_csv.parent.mkdir(parents=True, exist_ok=True)
+    headers = list(decision_rows[0].keys())
+    with output_csv.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=headers)
+        writer.writeheader()
+        for r in decision_rows:
+            writer.writerow(r)
+
+    lines = [
+        "# Operational GO/NO-GO Decision Table",
+        "",
+        "- Decision logic:",
+        "  - `GO`: N-test pass, rolling KS p>=0.05, weekly 90% coverage=1, and 0.8<=median_ratio<=1.2.",
+        "  - `CAUTION`: partial pass (N-test pass, rolling p>=0.01, coverage>=0.5).",
+        "  - `NO-GO`: otherwise.",
+        "",
+    ]
+    for r in decision_rows:
+        lines.append(
+            f"- {r['label']}: **{r['operational_status']}** "
+            f"(N-test={r['n_test_class']}, rolling p={float(r['rolling_p']):.3g}, "
+            f"coverage={float(r['weekly_coverage_90']):.2f}, median/obs={float(r['median_ratio']):.2f}, "
+            f"RJ better CRPS={bool(r['rj_beats_etas_crps'])})."
+        )
+    output_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        while True:
+            chunk = f.read(1024 * 1024)
+            if not chunk:
+                break
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def write_supplement_manifest(root: Path, output_dir: Path) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    patterns = [
+        "etas_config*.json",
+        "nz_etas_simulations*.txt",
+        "run_etas_pipeline.sh",
+        "scripts/python/compare_etas_experiments.py",
+        "scripts/python/build_publication_figures.py",
+        "scripts/python/cache_full_observed_catalog.py",
+        "docs/operational_etas_experiment_design.tex",
+        "build/comparison/publication_*.csv",
+        "build/comparison/publication_*.png",
+        "build/comparison/publication_*.md",
+        "build/comparison/geonet_2016p858000_d0_14p5_mc3_observed.csv",
+        "build/pycsep*/evaluation_json/*.json",
+    ]
+
+    files: list[Path] = []
+    for pattern in patterns:
+        files.extend(root.glob(pattern))
+    files = sorted({p.resolve() for p in files if p.exists()})
+
+    sha_path = output_dir / "SHA256SUMS.txt"
+    with sha_path.open("w", encoding="utf-8") as f:
+        for path in files:
+            rel = path.relative_to(root)
+            f.write(f"{_sha256_file(path)}  {rel}\n")
+
+    repro_script = output_dir / "reproduce_publication.sh"
+    repro_script.write_text(
+        "\n".join(
+            [
+                "#!/usr/bin/env bash",
+                "set -euo pipefail",
+                "python3 scripts/python/cache_full_observed_catalog.py",
+                "./run_etas_pipeline.sh etas_config_premainshock.json",
+                "./run_etas_pipeline.sh etas_config_2h.json",
+                "./run_etas_pipeline.sh etas_config_6h.json",
+                "./run_etas_pipeline.sh etas_config_12h.json",
+                "./run_etas_pipeline.sh etas_config_1d.json",
+                "./run_etas_pipeline.sh etas_config_2d.json",
+                "./run_etas_pipeline.sh etas_config_3d.json",
+                "./run_etas_pipeline.sh etas_config.json",
+                "python3 scripts/python/compare_etas_experiments.py",
+                "python3 scripts/python/build_publication_figures.py",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    index_path = output_dir / "SUPPLEMENT_INDEX.md"
+    lines = [
+        "# Supplement Package Index",
+        "",
+        f"- Root: `{root}`",
+        f"- File count indexed: `{len(files)}`",
+        f"- Checksums: `{sha_path}`",
+        f"- Reproduction script: `{repro_script}`",
+        "",
+        "## Included Paths",
+        "",
+    ]
+    for path in files:
+        lines.append(f"- `{path.relative_to(root)}`")
+    index_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def _safe_cmd(cmd: list[str], cwd: Path) -> str:
     try:
         result = subprocess.run(cmd, cwd=str(cwd), check=True, capture_output=True, text=True)
@@ -1328,16 +1864,17 @@ def write_reproducibility_metadata(root: Path, output_md: Path) -> None:
         "",
         "## Run Order (fixed-horizon issue-time set)",
         "",
-        "1. `./run_etas_pipeline.sh etas_config_premainshock.json`",
-        "2. `./run_etas_pipeline.sh etas_config_2h.json`",
-        "3. `./run_etas_pipeline.sh etas_config_6h.json`",
-        "4. `./run_etas_pipeline.sh etas_config_12h.json`",
-        "5. `./run_etas_pipeline.sh etas_config_1d.json`",
-        "6. `./run_etas_pipeline.sh etas_config_2d.json`",
-        "7. `./run_etas_pipeline.sh etas_config_3d.json`",
-        "8. `./run_etas_pipeline.sh etas_config.json`",
-        "9. `python3 scripts/python/compare_etas_experiments.py`",
-        "10. `python3 scripts/python/build_publication_figures.py`",
+        "1. `python3 scripts/python/cache_full_observed_catalog.py`",
+        "2. `./run_etas_pipeline.sh etas_config_premainshock.json`",
+        "3. `./run_etas_pipeline.sh etas_config_2h.json`",
+        "4. `./run_etas_pipeline.sh etas_config_6h.json`",
+        "5. `./run_etas_pipeline.sh etas_config_12h.json`",
+        "6. `./run_etas_pipeline.sh etas_config_1d.json`",
+        "7. `./run_etas_pipeline.sh etas_config_2d.json`",
+        "8. `./run_etas_pipeline.sh etas_config_3d.json`",
+        "9. `./run_etas_pipeline.sh etas_config.json`",
+        "10. `python3 scripts/python/compare_etas_experiments.py`",
+        "11. `python3 scripts/python/build_publication_figures.py`",
         "",
     ]
     output_md.write_text("\n".join(lines), encoding="utf-8")
@@ -1375,6 +1912,28 @@ def main() -> None:
         output_dir / "publication_probabilistic_scores.csv",
         output_dir / "publication_probabilistic_summary.md",
     )
+    rj_metrics = make_rj_baseline_comparison(
+        rows,
+        probabilistic_metrics,
+        root,
+        output_dir / "publication_rj_baseline_comparison.csv",
+        output_dir / "publication_rj_vs_etas.png",
+        output_dir / "publication_rj_baseline_summary.md",
+    )
+    make_magnitude_threshold_sensitivity(
+        rows,
+        root,
+        output_dir / "publication_magnitude_threshold_sensitivity.csv",
+        output_dir / "publication_magnitude_threshold_sensitivity.png",
+        output_dir / "publication_magnitude_threshold_sensitivity.md",
+    )
+    write_operational_decision_table(
+        rows,
+        probabilistic_metrics,
+        rj_metrics,
+        output_dir / "publication_operational_decision_table.csv",
+        output_dir / "publication_operational_decision_table.md",
+    )
     _run_change_point_analysis(
         rows,
         probabilistic_metrics,
@@ -1386,6 +1945,10 @@ def main() -> None:
         root,
         output_dir / "publication_reproducibility_metadata.md",
     )
+    write_supplement_manifest(
+        root,
+        root / "build/supplement",
+    )
     print(f"Wrote {output_dir / 'publication_regime_diagnostics.png'}")
     print(f"Wrote {output_dir / 'publication_regime_metrics.csv'}")
     print(f"Wrote {output_dir / 'publication_diagnostics_summary.md'}")
@@ -1394,10 +1957,21 @@ def main() -> None:
     print(f"Wrote {output_dir / 'publication_probabilistic_scores.png'}")
     print(f"Wrote {output_dir / 'publication_probabilistic_scores.csv'}")
     print(f"Wrote {output_dir / 'publication_probabilistic_summary.md'}")
+    print(f"Wrote {output_dir / 'publication_rj_baseline_comparison.csv'}")
+    print(f"Wrote {output_dir / 'publication_rj_vs_etas.png'}")
+    print(f"Wrote {output_dir / 'publication_rj_baseline_summary.md'}")
+    print(f"Wrote {output_dir / 'publication_magnitude_threshold_sensitivity.csv'}")
+    print(f"Wrote {output_dir / 'publication_magnitude_threshold_sensitivity.png'}")
+    print(f"Wrote {output_dir / 'publication_magnitude_threshold_sensitivity.md'}")
+    print(f"Wrote {output_dir / 'publication_operational_decision_table.csv'}")
+    print(f"Wrote {output_dir / 'publication_operational_decision_table.md'}")
     print(f"Wrote {output_dir / 'publication_change_point_analysis.csv'}")
     print(f"Wrote {output_dir / 'publication_change_point_summary.md'}")
     print(f"Wrote {output_dir / 'publication_change_points.png'}")
     print(f"Wrote {output_dir / 'publication_reproducibility_metadata.md'}")
+    print(f"Wrote {root / 'build/supplement/SUPPLEMENT_INDEX.md'}")
+    print(f"Wrote {root / 'build/supplement/SHA256SUMS.txt'}")
+    print(f"Wrote {root / 'build/supplement/reproduce_publication.sh'}")
 
 
 if __name__ == "__main__":

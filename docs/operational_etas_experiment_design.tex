@@ -76,6 +76,10 @@ We identify a \emph{branching identifiability barrier} near 2~d and an
 \emph{Omori identifiability barrier} near 7~d as two conceptually distinct
 constraints, and propose Bayesian hierarchical priors on $p$ as the
 highest-leverage improvement for the 2~d--3~d overprediction regime.
+Against a fixed-parameter RJ baseline ($p=1.0$, $c=0.1$~d), ETAS attains lower
+weekly CRPS only at 7~d; in all earlier windows RJ is less miscalibrated in
+distribution space. A derived operational decision table accordingly gives
+NO-GO for all pre-7~d ETAS issue times and GO at 7~d.
 Segmented tests provide statistical support for the primary 1~d--2~d transition
 and weaker support for a distinct late-window breakpoint in this single-sequence
 8-point issue-time series.
@@ -648,10 +652,48 @@ robustness check against non-Gaussian tails. In this manuscript, we interpret
 both tests jointly: T-test for mean information-gain effect size and W-test for
 sign consistency under weaker distributional assumptions.
 
+\subsection{Reasenberg--Jones reference benchmark and threshold sensitivity}
+
+To provide a low-dimensional operational baseline, we constructed a
+Reasenberg--Jones (RJ) count benchmark with fixed temporal parameters
+$p=1.0$ and $c=0.1$~day and issue-time-specific productivity estimated from the
+observed training count. For issue time $T_i$, the RJ intensity is
+\begin{equation}
+\lambda_{RJ}(t\mid T_i)=K_i(t+c)^{-p}, \qquad t>0,
+\label{eq:rj_intensity}
+\end{equation}
+with
+\begin{equation}
+\hat K_i=\frac{N_{[0,T_i)}}{\int_0^{T_i}(t+c)^{-p}\,dt},
+\quad
+\hat N^{RJ}_{[7,14]}(T_i)=
+\hat K_i\int_7^{14}(t+c)^{-p}\,dt.
+\label{eq:rj_mean}
+\end{equation}
+We evaluate RJ as a Poisson predictive distribution with mean
+$\hat N^{RJ}_{[7,14]}(T_i)$, using the same observed target
+$N_{\mathrm{obs}}=323$ as ETAS. This benchmark is intentionally simple:
+it isolates whether ETAS issue-time behavior improves on a robust count-only
+reference.
+
+For reproducibility of the RJ training counts, we use a stitched observed
+catalog:
+\texttt{build/pycsep/cache/2016p858000\_d0\_14p5\_mc3\_observed.csv}
+for the first 2~h and
+\texttt{build/pycsep\_2h/cache/2016p858000\_d0p08333\_14p5\_mc3\_observed.csv}
+for 2~h--14.5~d, maintaining consistency with the archived fixed-horizon
+7--14~d target catalog.
+
+We also compute magnitude-threshold sensitivity from the same fixed-horizon
+simulation ensembles (no rerun), evaluating count consistency and CRPS for
+$M\geq3,4,5,6$ in the 7--14~d window.
+
 \subsection{Reproducible workflow}
 
-The full analysis is reproduced in four stages:
+The full analysis is reproduced in five stages:
 \begin{enumerate}
+    \item cache the full 0--14.5~d observed catalog used by the RJ benchmark
+          (\texttt{scripts/python/cache\_full\_observed\_catalog.py});
     \item run ETAS simulations from each issue-time configuration with fixed
           verification window definitions (\texttt{etas\_config\_*.json});
     \item run per-experiment pyCSEP evaluation and export JSON/figure products
@@ -665,6 +707,7 @@ The full analysis is reproduced in four stages:
 
 Representative commands are:
 \begin{verbatim}
+python3 scripts/python/cache_full_observed_catalog.py
 ./run_etas_pipeline.sh etas_config_premainshock.json
 ./run_etas_pipeline.sh etas_config_2h.json
 ./run_etas_pipeline.sh etas_config_6h.json
@@ -688,8 +731,14 @@ Primary machine-readable outputs used in this manuscript are:
 \texttt{build/comparison/publication\_daily\_metrics.csv}, and
 \texttt{build/comparison/publication\_probabilistic\_scores.csv}.
 Additional reproducibility and segmentation outputs are
-\texttt{build/comparison/publication\_change\_point\_analysis.csv} and
+\texttt{build/comparison/publication\_change\_point\_analysis.csv},
+\texttt{build/comparison/publication\_rj\_baseline\_comparison.csv},
+\texttt{build/comparison/publication\_magnitude\_threshold\_sensitivity.csv},
+\texttt{build/comparison/publication\_operational\_decision\_table.csv}, and
 \texttt{build/comparison/publication\_reproducibility\_metadata.md}.
+The archival supplement index and checksums are written to
+\texttt{build/supplement/SUPPLEMENT\_INDEX.md} and
+\texttt{build/supplement/SHA256SUMS.txt}.
 
 \section{Results}
 
@@ -1191,6 +1240,92 @@ intermediate performance at 2~d--3~d, and severe distributional mismatch for
 \label{fig:prob_scores}
 \end{figure}
 
+\subsection{RJ baseline comparison: ETAS gains emerge only after late-window calibration}
+\label{sec:rj_results}
+
+The fixed-parameter RJ benchmark (Section above; $p=1.0$, $c=0.1$~d) provides a
+useful operational reference for issue-time decisions
+(\texttt{publication\_rj\_baseline\_comparison.csv};
+Figure~\ref{fig:rj_vs_etas}).
+
+Across the seven non-calibrated ETAS runs (generic through 3~d), RJ achieves
+lower weekly CRPS than ETAS in every case. The contrast is strongest in the
+2~d--3~d regime: ETAS weekly CRPS is 150.6--144.7 versus RJ
+43.6--26.8, while ETAS median/observed count ratio is 1.54--1.52 and RJ
+mean/observed ratio is 0.84--0.89. Thus, in this sequence, ETAS regime-2
+overprediction is severe enough that a simpler RJ baseline is more accurate in
+distribution space.
+
+At 7~d, ETAS overtakes RJ: ETAS weekly CRPS is 14.48 versus RJ 19.99, and ETAS
+count ratio is 1.03 versus RJ 0.91. This identifies a practical handover point:
+before late-window calibration, ETAS does not systematically outperform a robust
+count-only reference.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{publication_rj_vs_etas.png}
+\caption{ETAS versus RJ baseline by issue time.
+Left: count ratio to observed weekly count ($N_{\mathrm{obs}}=323$).
+Right: weekly CRPS (lower is better). RJ uses fixed $p=1.0$, $c=0.1$~d with
+issue-time-specific productivity estimated from observed training counts.
+\textit{Alt-text: ETAS and RJ comparison showing RJ outperforming ETAS in CRPS
+for generic through 3~d runs, with ETAS outperforming RJ only at 7~d.}}
+\label{fig:rj_vs_etas}
+\end{figure}
+
+\subsection{Magnitude-threshold sensitivity within the fixed-horizon archive}
+\label{sec:threshold_sens}
+
+Magnitude-threshold diagnostics from the same archived simulations
+(\texttt{publication\_magnitude\_threshold\_sensitivity.csv};
+Figure~\ref{fig:threshold_sensitivity}) show that regime structure is stable
+across thresholds.
+
+For $M\geq4$ (observed count 34), the same transition persists:
+2~h--1~d runs strongly underpredict (median ratio 0.26--0.29),
+2~d--3~d overpredict (1.50--1.56), and 7~d is calibrated (1.00).
+For $M\geq5$ and $M\geq6$, observed counts are very small (1 and 0), so
+consistency tests have low power and are dominated by discreteness. This
+supports the interpretation that the core issue-time signal is a
+moderate-magnitude count-calibration problem, not a high-magnitude-tail
+instability in this verification window.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{publication_magnitude_threshold_sensitivity.png}
+\caption{Magnitude-threshold sensitivity for the fixed-horizon archive.
+Left: median/observed count ratio versus issue time.
+Right: weekly CRPS versus issue time.
+Curves are shown for $M\geq3,4,5,6$ using the same simulated catalogs and
+observed 7--14~d target window.
+\textit{Alt-text: Threshold-sensitivity lines showing regime-consistent
+underprediction at early issue times, overprediction at 2--3 days, and
+near-calibration at 7 days for moderate thresholds.}}
+\label{fig:threshold_sensitivity}
+\end{figure}
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Operational issue-time decision table derived from archived metrics
+(\texttt{publication\_operational\_decision\_table.csv}).}
+\label{tab:operational_decision}
+\begin{tabular}{lccccc}
+\toprule
+Run & N-test class & Rolling KS $p$ & 90\% coverage & RJ better CRPS? & Status \\
+\midrule
+Generic & underpredict & $5.0\times10^{-12}$ & 0.00 & yes & NO-GO \\
+2 h & underpredict & $4.4\times10^{-18}$ & 0.00 & yes & NO-GO \\
+6 h & underpredict & $1.6\times10^{-16}$ & 0.00 & yes & NO-GO \\
+12 h & underpredict & $2.0\times10^{-21}$ & 0.00 & yes & NO-GO \\
+1 d & underpredict & $2.6\times10^{-19}$ & 0.00 & yes & NO-GO \\
+2 d & overpredict & $2.6\times10^{-5}$ & 0.00 & yes & NO-GO \\
+3 d & overpredict & $3.1\times10^{-5}$ & 0.00 & yes & NO-GO \\
+7 d & pass & $9.8\times10^{-1}$ & 1.00 & no & GO \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \begin{table}[ht]
 \centering
 \small
@@ -1203,6 +1338,9 @@ Claim & Primary metric(s) & Evidence location & Decision criterion \\
 Primary transition near 1--2~d issue time & Median/observed count ratio, segmented one-break test & Table~\ref{tab:counts}, Section~\ref{sec:segmented_tests}, Figure~\ref{fig:change_points} & One-break permutation $p<0.05$ for count ratio \\
 Late-window calibration appears only at 7~d & N-test $(\delta_1,\delta_2)$, rolling KS, PIT, coverage & Table~\ref{tab:counts}, Table~\ref{tab:support}, Figure~\ref{fig:daily_decomposition} & Joint pass of N-test and non-extreme rolling/PIT diagnostics \\
 Magnitude model is stable across issue times & Resampled M-test, MLL quantiles & Table~\ref{tab:counts}, Section~\ref{sec:mag_freq} & No tail rejection at $\alpha=0.05$ \\
+ETAS improvement over RJ appears only at 7~d & Weekly CRPS ETAS vs RJ, count ratio ETAS vs RJ & Section~\ref{sec:rj_results}, Figure~\ref{fig:rj_vs_etas} & ETAS CRPS $<$ RJ CRPS only at 7~d \\
+Moderate-threshold regime structure is stable & Threshold-specific count ratio and CRPS ($M\geq4$) & Section~\ref{sec:threshold_sens}, Figure~\ref{fig:threshold_sensitivity} & Same early underprediction / mid-window overprediction / late calibration pattern \\
+Operational issuance recommendation & N-test class, rolling KS, interval coverage, RJ comparator & Table~\ref{tab:operational_decision} & GO only when all reliability checks pass \\
 Early analytical expectation inconsistency & $E[N]$/empirical mean ratio, summary-vs-pyCSEP comparison & Table~\ref{tab:percentiles}, Figure~\ref{fig:regime_synthesis} & Large unresolved divergence; report empirical ensemble summaries \\
 Support limitations remain orthogonal to count calibration & $n^{(S)}_0$, zero-rate cell fraction, PL/S diagnostics & Table~\ref{tab:support}, Figure~\ref{fig:regime_synthesis} & Persistent non-zero unsupported observations across runs \\
 \bottomrule
@@ -1390,6 +1528,32 @@ median or expected count; they should also report the 90\% interval and its
 coverage rate from past analogous events, as this is the statistic that most
 clearly signals whether the model's expressed uncertainty is reliable.
 
+\subsection{Operational handover criterion from RJ and reliability diagnostics}
+
+The RJ comparison and operational decision table (Section~\ref{sec:rj_results},
+Table~\ref{tab:operational_decision}) suggest a practical handover rule for this
+sequence class. For issue times up to 3~d, ETAS either underpredicts or
+overpredicts with zero 90\% coverage, and RJ has lower weekly CRPS in all seven
+non-7d cases. Only at 7~d does ETAS simultaneously pass count consistency,
+temporal calibration, and interval coverage, while also outperforming RJ in CRPS.
+
+This implies that an operational ETAS product should be gated by \emph{joint}
+criteria, not by issue time alone: count consistency (N-test), temporal
+allocation (rolling KS / PIT behavior), uncertainty reliability (coverage), and
+benchmark dominance (ETAS score better than RJ). In this archive, the gate opens
+only for the 7~d run.
+
+\subsection{Magnitude-threshold robustness and where statistical power collapses}
+
+Threshold sensitivity confirms that the regime structure is robust at
+moderate magnitudes: the same underpredict/overpredict/calibrated pattern
+persists for $M\geq4$ as for $M\geq3$.
+At higher thresholds ($M\geq5$ and especially $M\geq6$), observed counts in the
+fixed horizon are too small for strong consistency discrimination. This is a
+power limitation, not evidence that high-magnitude tail behavior is fully
+resolved. Consequently, issue-time conclusions in this manuscript should be
+interpreted as strongest for the moderate-magnitude operational count range.
+
 \subsection{Expected-count consistency and the danger of reporting unresolved $E[N]$}
 
 The divergence between $E[N]$ and simulation medians in the early-window runs
@@ -1528,6 +1692,12 @@ sequence produces the following principal conclusions.
     $\sim0.47$ daily) for 2~d--3~d, quantitatively separating the two
     non-calibrated regimes.
 
+    \item A fixed-parameter RJ baseline benchmark ($p=1.0$, $c=0.1$~d) is
+    less miscalibrated than ETAS for all non-7d issue times in weekly CRPS,
+    while ETAS becomes superior only at 7~d (ETAS CRPS 14.48 vs RJ 19.99).
+    This supports a model-handover interpretation: ETAS gains are realized only
+    after late-window calibration.
+
     \item Analytical expected counts $E[N]$ diverge strongly from empirical
     simulation summaries in early windows (up to factors of $\sim$19 versus
     pyCSEP empirical means), indicating an unresolved expected-count consistency
@@ -1539,6 +1709,12 @@ sequence produces the following principal conclusions.
     deviation from the Gutenberg--Richter distribution in any run. The $b=1.0$
     assumption is robust for this sequence; operational improvement effort
     should focus on count calibration rather than magnitude recalibration.
+
+    \item Magnitude-threshold sensitivity of the archived runs shows the same
+    regime structure at $M\geq4$ as at $M\geq3$
+    (early underprediction, intermediate overprediction, late calibration).
+    At $M\geq5$ and above, low observed counts reduce statistical power, so
+    threshold-tail conclusions should be treated cautiously.
 
     \item Spatial support limitations persist across all runs (16--25 observed
     events in zero-rate cells; 2374--3002 of 6343 testing cells empty), and
@@ -1568,6 +1744,10 @@ sequence produces the following principal conclusions.
     correct direction, correct scale, and appropriate uncertainty spread.
     Interval coverage validation should be a mandatory pre-issuance check for any
     operational ETAS product.
+
+    \item A quantitative operational decision table combining N-test class,
+    rolling calibration, interval coverage, and RJ benchmark comparison yields
+    NO-GO for generic through 3~d and GO only for 7~d in this sequence.
 \end{enumerate}
 
 \section*{Data and Resources}
@@ -1582,10 +1762,17 @@ archived runs. Additional publication diagnostics were generated into
 \texttt{scripts/python/build\_publication\_figures.py}. Reproducibility metadata
 (git commit hash, software versions, RNG seeds, and exact command order) are
 archived in
-\texttt{build/comparison/publication\_reproducibility\_metadata.md}. pyCSEP documentation
+\texttt{build/comparison/publication\_reproducibility\_metadata.md}. The
+RJ benchmark reference catalog and comparison outputs are archived in
+\texttt{build/pycsep/cache/2016p858000\_d0\_14p5\_mc3\_observed.csv} and
+\texttt{build/comparison/publication\_rj\_*.csv/png}. The supplement package
+index, checksum manifest, and reproduction script are archived in
+\texttt{build/supplement/SUPPLEMENT\_INDEX.md},
+\texttt{build/supplement/SHA256SUMS.txt}, and
+\texttt{build/supplement/reproduce\_publication.sh}. pyCSEP documentation
 URLs are listed below, and catalog-evaluation concepts follow the
 catalog-based testing literature \cite{savran2020}. External URLs consulted in this study (all accessed on
-1~April~2026) are:
+2~April~2026) are:
 \url{https://quakesearch.geonet.org.nz/},
 \url{https://wfs.geonet.org.nz/geonet/ows},
 \url{https://earthquake.usgs.gov/data/oaf/schedule.php},
