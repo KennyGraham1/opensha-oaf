@@ -50,39 +50,35 @@
 
 \begin{abstract}
 We evaluate issue-time sensitivity of operational New Zealand ETAS forecasts
-for the 2016 $M_w$~7.8 Kaik\={o}ura sequence using a fixed-horizon experiment:
-all eight forecasts verify the same post-mainshock window (days 7--14,
-$N_{\mathrm{obs}}=323$, $M\geq\Mc=3.0$), while only the fit-data window varies
-(generic-parameter run plus sequence-specific fits at 2~h, 6~h, 12~h, 1~d,
+for the 2016 $M_w$~7.8 Kaik\={o}ura sequence using a fixed-horizon design:
+all eight forecasts verify the same days 7--14 target window
+($N_{\mathrm{obs}}=323$, $M\geq\Mc=3.0$), while only the fit-data window varies
+(generic-parameter run, plus sequence-specific fits at 2~h, 6~h, 12~h, 1~d,
 2~d, 3~d, and 7~d). Each run contains 1000 stochastic catalogs and is evaluated
-with pyCSEP catalog-based tests against a common GeoNet observed catalog.
-Results separate into three regimes: (1) generic/2~h--1~d runs underpredict
-severely (medians 45--86; ratios 0.14--0.27) and converge to a low-cascade
-solution (indirect triggering 2--9\%); (2) 2~d--3~d runs recover branching
+with pyCSEP catalog-based tests against a common GeoNet catalog.
+
+Results separate into three regimes. (1) Generic/2~h--1~d runs underpredict
+substantially (medians 45--86; ratios 0.14--0.27) and converge to low-cascade
+solutions (indirect triggering 2--9\%). (2) 2~d--3~d runs recover branching
 ($\sim$31\% indirect triggering) but overpredict counts (medians 492--499;
-ratios 1.52--1.55) because fitted Omori $p$ remains too low ($p=0.90$);
-(3) the 7~d run is count- and temporally calibrated (median 334; ratio 1.03;
-rolling Kolmogorov--Smirnov $p=0.98$). A daily-bin decomposition shows
-that pre-7~d runs are uniformly one-sided in every day bin, whereas the 7~d
-weekly success arises from mixed-sign daily error compensation across three
-sign reversals. We further show that all non-calibrated runs exhibit a
-\emph{double failure}: they are simultaneously biased \emph{and} overconfident,
-with 90\% predictive intervals that completely exclude $N_{\mathrm{obs}}=323$.
-Only the 7~d run achieves 100\% coverage at the 90\% level. Magnitude tests
-(resampled M-test and marginal log-likelihood) pass for all issue times, indicating
-stable Gutenberg--Richter behavior decoupled from count skill. Spatial support
-remains incomplete in all runs (16--25 observed events in zero-rate cells).
-We identify a \emph{branching identifiability barrier} near 2~d and an
-\emph{Omori identifiability barrier} near 7~d as two conceptually distinct
-constraints, and propose Bayesian hierarchical priors on $p$ as the
-highest-leverage improvement for the 2~d--3~d overprediction regime.
-Against a fixed-parameter RJ baseline ($p=1.0$, $c=0.1$~d), ETAS attains lower
-weekly CRPS only at 7~d; in all earlier windows RJ is less miscalibrated in
-distribution space. A derived operational decision table accordingly gives
-NO-GO for all pre-7~d ETAS issue times and GO at 7~d.
-Segmented tests provide statistical support for the primary 1~d--2~d transition
-and weaker support for a distinct late-window breakpoint in this single-sequence
-8-point issue-time series.
+ratios 1.52--1.55), consistent with shallow fitted Omori decay ($p=0.90$).
+(3) The 7~d run is count- and temporally calibrated (median 334; ratio 1.03;
+rolling Kolmogorov--Smirnov $p=0.98$). Daily-bin diagnostics show that the
+7~d weekly success reflects partial compensation of mixed-sign daily errors.
+
+Magnitude diagnostics (resampled M-test and marginal log-likelihood) pass for
+all issue times, indicating stable Gutenberg--Richter behavior decoupled from
+count calibration. Spatial support remains incomplete in every run
+(16--25 observed events in zero-rate cells). In probabilistic terms, all
+non-7~d runs are both biased and under-covered at the 90\% level
+(0\% empirical coverage), whereas the 7~d run achieves full 90\% coverage.
+
+Compared with a fixed-parameter Reasenberg--Jones benchmark ($p=1.0$,
+$c=0.1$~d), ETAS achieves lower weekly CRPS only at 7~d; earlier windows are
+better represented by RJ. An operational decision table therefore yields NO-GO
+for all pre-7~d ETAS issue times and GO at 7~d for this sequence. Segmented
+tests support a primary transition near 1--2~d and weaker evidence for a second
+late-window transition in this single-sequence, eight-point issue-time archive.
 \end{abstract}
 
 \textbf{Keywords}: ETAS; operational aftershock forecasting; pyCSEP;
@@ -129,7 +125,15 @@ monotonically but instead produce three qualitatively distinct regimes, each
 with a different mechanistic explanation. Recognizing these regimes clarifies
 what improvements are most needed and where the leverage is greatest.
 
-\section{Literature Review and Positioning}
+The analysis is organized around four explicit questions:
+(1) at what issue time does ETAS transition from severe count bias to
+approximately calibrated weekly behavior, (2) whether that transition is
+explained by branching-structure recovery, Omori-decay recovery, or both,
+(3) whether distribution-level reliability (coverage and proper scores) agrees
+with pass/fail consistency tests, and (4) when ETAS first outperforms a robust
+Reasenberg--Jones baseline in the same fixed verification window.
+
+\section{Background and Positioning}
 
 \subsection{Operational aftershock forecasting systems}
 
@@ -568,6 +572,31 @@ Jensen--Shannon divergence (JSD) against the 7~d reference distribution:
 JSD is bounded on $[0,1]$ bits for base-2 logs, with 0 meaning identical
 distributions.
 
+\subsection{Interpretation framework and operational criteria}
+
+To reduce post-hoc interpretation, we use a fixed decision framework throughout
+the manuscript. For weekly count consistency, a run is classified as
+\emph{underpredict}, \emph{overpredict}, or \emph{pass} from the pyCSEP N-test
+tail quantiles:
+\[
+\text{underpredict if }\delta_2 \ge 0.975,\qquad
+\text{overpredict if }\delta_1 \ge 0.975,\qquad
+\text{pass otherwise}.
+\]
+Distribution-level reliability is then assessed with three complementary checks:
+(i) rolling KS calibration ($p>0.05$ interpreted as non-extreme),
+(ii) empirical 90\% interval coverage of $N_{\mathrm{obs}}$ (targeting
+coverage near nominal), and (iii) proper-score comparison (weekly CRPS and
+interval score). For benchmark handover decisions, ETAS and RJ are compared by
+weekly CRPS in the same fixed window.
+
+In the operational decision table (Section~\ref{sec:threshold_sens}),
+\textbf{GO} is assigned only if all four conditions hold:
+N-test pass, non-extreme rolling calibration, non-zero 90\% coverage, and
+ETAS weekly CRPS not worse than RJ. Otherwise the run is \textbf{NO-GO}.
+This criterion is intentionally conservative and sequence-specific; it is
+used here as a transparent issuance screen for the archived Kaik\={o}ura runs.
+
 \subsection{Uncertainty intervals and segmented issue-time analysis}
 
 To report uncertainty on headline metrics (count ratio and proper scores), we
@@ -653,6 +682,7 @@ both tests jointly: T-test for mean information-gain effect size and W-test for
 sign consistency under weaker distributional assumptions.
 
 \subsection{Reasenberg--Jones reference benchmark and threshold sensitivity}
+\label{sec:method_rj}
 
 To provide a low-dimensional operational baseline, we constructed a
 Reasenberg--Jones (RJ) count benchmark with fixed temporal parameters
@@ -911,10 +941,7 @@ segmentation-test signal alone.
 Left: count-ratio series with best segmented means.
 Right: $\log_{10}$ weekly CRPS with best segmented means.
 Dashed vertical lines mark best two-break locations from exhaustive segmented
-search with minimum segment length of two points.
-\textit{Alt-text: Two-panel segmented diagnostics showing a clear primary break
-near the 1~d--2~d transition in count ratio, with weaker evidence for an
-additional late-window break in log-weekly CRPS.}}
+search with minimum segment length of two points.}
 \label{fig:change_points}
 \end{figure}
 
@@ -928,10 +955,7 @@ row: pyCSEP summary statistics, rolling calibration, indirect triggering share,
 and empirical N-test distributions. All runs verify the same days 7--14 window;
 only the fit-data window changes. The leftmost point is the generic-parameter
 ETAS run conditioned on the first 0.5~d catalog. The dashed horizontal line in
-the count panel marks $N_{\mathrm{obs}}=323$.
-\textit{Alt-text: Issue-time progression of ETAS parameters and forecast skill,
-showing strong underprediction at 2~h--1~d, overprediction at 2~d--3~d, and
-near-calibration at 7~d.}}
+the count panel marks $N_{\mathrm{obs}}=323$.}
 \label{fig:comparison}
 \end{figure}
 
@@ -1049,15 +1073,11 @@ Panel E highlights the expected-count inconsistency: analytical $E[N]$ diverges
 strongly from both empirical means and medians in early windows, whereas 2~d--7~d
 runs show substantially better consistency. Panel F summarizes within-horizon
 rolling calibration behavior: only the 7~d run reaches strong calibration
-($p=0.98$). Figure generated by
-\texttt{scripts/python/build\_publication\_figures.py}.
-\textit{Alt-text: Six-panel diagnostic synthesis combining count distributions,
-count bias, parameter-regime transitions, spatial support failures,
-expected-count consistency checks, and rolling calibration by issue time.}}
+($p=0.98$).}
 \label{fig:regime_synthesis}
 \end{figure}
 
-\subsection{Daily decomposition: aggregate calibration at 7~d is achieved by daily error compensation}
+\subsection{Daily decomposition and error compensation at 7~d}
 \label{sec:daily_comp}
 
 Using the full 1000-catalog ensembles, we decomposed the fixed-horizon
@@ -1130,15 +1150,11 @@ observed versus simulated daily medians; Panel B shows standardized residuals;
 Panel C shows PIT-like empirical CDF at observed for each daily bin and issue
 time; Panel D summarizes daily accuracy (MAE) and sharpness (10--90 width).
 Only the 7~d run exhibits mixed-sign residuals; all earlier runs are one-sided
-across all daily bins. Figure generated by
-\texttt{scripts/python/build\_publication\_figures.py}.
-\textit{Alt-text: Daily-bin decomposition showing one-sided underprediction for
-2~h--1~d runs, one-sided overprediction for 2~d--3~d runs, and compensated
-mixed-sign daily errors for the 7~d run.}}
+across all daily bins.}
 \label{fig:daily_decomposition}
 \end{figure}
 
-\subsection{Probabilistic score diagnostics: discrimination, calibration, and sharpness}
+\subsection{Probabilistic score diagnostics}
 \label{sec:prob_scores}
 
 We computed proper-score and distribution-distance diagnostics from the full
@@ -1169,11 +1185,11 @@ This confirms that the 2~d--3~d forecasts are \emph{closer in shape} to the
 calibrated regime but still substantially miscalibrated, whereas the 2~h--1~d
 forecasts are distributionally almost disjoint from the 7~d behavior.
 
-\subsubsection*{Double failure: bias and overconfidence simultaneously}
+\subsubsection*{Double failure: bias and under-coverage simultaneously}
 
-A striking property of the non-calibrated regimes is that they are not merely
-biased but simultaneously \emph{overconfident}: their predictive intervals are
-too narrow to cover the observed count at any standard confidence level
+An important property of the non-calibrated regimes is that they are not only
+biased but also \emph{under-covered}: their predictive intervals do not include
+the observed count at nominal confidence levels
 (Table~\ref{tab:overconf}). All seven non-7d runs have 90\% interval coverage
 of 0\%, meaning the observed count $N_{\mathrm{obs}}=323$ falls completely
 outside the empirical 5th--95th percentile range of each forecast.
@@ -1203,22 +1219,18 @@ Generic      & 51  & 167 & 116 & 0\% & No (above) \\
 
 In Regime~1 (2~h--1~d), the 90\% interval is only 50--54 events wide---a very
 narrow band---and $N_{\mathrm{obs}}=323$ lies far above the upper bound.
-These forecasts are not only underpredictive; they assert with high apparent
-confidence (by producing narrow distributions) that very few events will occur.
-An emergency manager receiving a ``50--87 events at 90\% confidence'' advisory
-when 323 events ultimately occur would be severely misled by the model's false
-precision.
+These forecasts are therefore both underpredictive and over-sharp in the wrong
+direction: uncertainty is represented too narrowly around low counts.
 
 In Regime~2 (2~d--3~d), the failure mode is the mirror image: the 90\%
 intervals are 228--331 events wide and centered far above the observed count,
 with $N_{\mathrm{obs}}=323$ falling below the 5th percentile. These forecasts
-also assert false precision, in the overprediction direction.
+are similarly over-sharp, but in the overprediction direction.
 
 The double-failure pattern---systematic directional bias \emph{combined with}
-overconfidence---is operationally more dangerous than bias alone, because a
-well-calibrated wide uncertainty band would at least warn decision-makers that
-the forecast is uncertain. Narrow miscalibrated bands project unwarranted
-certainty in the wrong direction. This finding strengthens the case for routine
+under-coverage---is operationally more problematic than bias alone, because
+the distribution does not represent uncertainty reliably around the realized
+outcome. This finding strengthens the case for routine
 ensemble-distribution reporting (not just point forecasts) and for explicit
 interval-coverage validation before any ETAS product is issued operationally.
 
@@ -1233,17 +1245,14 @@ mean 90\% interval width).
 Panel D: Jensen--Shannon divergence from the 7~d reference forecast
 distribution at weekly and daily scales.
 Lower values are better in Panels A, B, and D; in Panel C, lower x and lower y
-indicate better calibration and sharper forecasts.
-\textit{Alt-text: Probabilistic score panels showing strong improvement at 7~d,
-intermediate performance at 2~d--3~d, and severe distributional mismatch for
-2~h--1~d issue times.}}
+indicate better calibration and sharper forecasts.}
 \label{fig:prob_scores}
 \end{figure}
 
-\subsection{RJ baseline comparison: ETAS gains emerge only after late-window calibration}
+\subsection{RJ baseline comparison and ETAS handover}
 \label{sec:rj_results}
 
-The fixed-parameter RJ benchmark (Section above; $p=1.0$, $c=0.1$~d) provides a
+The fixed-parameter RJ benchmark (Section~\ref{sec:method_rj}; $p=1.0$, $c=0.1$~d) provides a
 useful operational reference for issue-time decisions
 (\texttt{publication\_rj\_baseline\_comparison.csv};
 Figure~\ref{fig:rj_vs_etas}).
@@ -1267,13 +1276,11 @@ count-only reference.
 \caption{ETAS versus RJ baseline by issue time.
 Left: count ratio to observed weekly count ($N_{\mathrm{obs}}=323$).
 Right: weekly CRPS (lower is better). RJ uses fixed $p=1.0$, $c=0.1$~d with
-issue-time-specific productivity estimated from observed training counts.
-\textit{Alt-text: ETAS and RJ comparison showing RJ outperforming ETAS in CRPS
-for generic through 3~d runs, with ETAS outperforming RJ only at 7~d.}}
+issue-time-specific productivity estimated from observed training counts.}
 \label{fig:rj_vs_etas}
 \end{figure}
 
-\subsection{Magnitude-threshold sensitivity within the fixed-horizon archive}
+\subsection{Magnitude-threshold sensitivity}
 \label{sec:threshold_sens}
 
 Magnitude-threshold diagnostics from the same archived simulations
@@ -1297,10 +1304,7 @@ instability in this verification window.
 Left: median/observed count ratio versus issue time.
 Right: weekly CRPS versus issue time.
 Curves are shown for $M\geq3,4,5,6$ using the same simulated catalogs and
-observed 7--14~d target window.
-\textit{Alt-text: Threshold-sensitivity lines showing regime-consistent
-underprediction at early issue times, overprediction at 2--3 days, and
-near-calibration at 7 days for moderate thresholds.}}
+observed 7--14~d target window.}
 \label{fig:threshold_sensitivity}
 \end{figure}
 
@@ -1391,20 +1395,13 @@ broader kernels: the 7~d fit leaves only 3002 cells empty but still has 16
 observed events in zero-rate locations, suggesting persistent limitation from
 the isotropic kernel assumption rather than from data volume alone.
 
-A noteworthy spatial anomaly is that the 7~d run has \emph{more} zero-rate
-testing cells (3002) than any sequence-specific early-window run (2374--2653),
-even though it uses the most data. This apparent paradox resolves as follows:
-the 7~d spatial kernel, fitted over a broader aftershock distribution, allocates
-more probability mass to a diffuse halo around the rupture zone, effectively
-leaving distant low-density cells with numerically zero rate under the discrete
-grid representation. The early-window kernels are more concentrated, assigning
-non-zero rates only to cells very close to the mainshock but covering that core
-area completely. The net effect is that the number of observed events in
-zero-rate cells ($n^{(S)}_0 = 16$) is nearly identical between the 7~d run and
-the 1~d run (11), even though the 7~d run has 23\% more zero-rate cells by count.
-This illustrates that zero-cell count alone is an inadequate spatial-support
-diagnostic; what matters is how many \emph{observations} fall in those cells,
-which is the $n^{(S)}_0$ quantity reported in Table~\ref{tab:support}.
+The 7~d run has more zero-rate testing cells (3002) than the early
+sequence-specific runs (2374--2653), despite using more data. This reflects
+how the broader late-window kernel redistributes mass across a wider halo while
+still leaving distant cells empty under the discrete grid. The operationally
+relevant quantity is therefore not the number of zero-rate cells alone, but the
+number of observed events in those cells ($n^{(S)}_0$), which remains non-zero
+for all runs (Table~\ref{tab:support}).
 
 The rolling KS test is decisive in distinguishing the three regimes. Only the
 7~d run passes ($p=0.98$). The 2~d and 3~d runs fail at $p\approx3\times10^{-5}$:
@@ -1416,7 +1413,7 @@ window by near-zero $c$ values.
 
 \section{Discussion}
 
-\subsection{Three failure regimes as an observational result}
+\subsection{Three failure regimes}
 
 The three-regime structure identified in this analysis is only observable under
 the fixed-horizon design. In any experiment where verification windows vary with
@@ -1426,15 +1423,10 @@ target ($N_{\mathrm{obs}}=323$ in all cases) reveals that the transition from
 underprediction to overprediction between 1~d and 2~d is a genuine property of
 the MLE landscape, not an artifact of different observation windows.
 
-The physical interpretation of the three regimes is as follows. In Regime~1
-(generic and 2~h--1~d), the available data contain too few aftershock pairs for
-the MLE to identify the branching structure; it converges instead to a
-mainshock-dominated solution with negligible cascading. In Regime~2 (2~d--3~d),
-enough aftershocks have accumulated to identify that cascading is significant
-($a=-2.0$, indirect triggering $\approx31\%$), but the Omori exponent is still
-underdetermined; the MLE settles on $p=0.90$ rather than the converged value of
-1.10. In Regime~3 (7~d only), both the branching structure and the decay rate
-are correctly identified, and the forecast is count- and temporally calibrated.
+Mechanistically, Regime~1 (generic and 2~h--1~d) is a mainshock-dominated fit
+with insufficient information to recover cascading; Regime~2 (2~d--3~d)
+recovers branching but not Omori decay ($p=0.90$); and Regime~3 (7~d) recovers
+both branching and decay and is calibrated at the weekly level.
 
 \subsection{\texttt{timeDependentMc} is necessary but not sufficient}
 
@@ -1447,14 +1439,11 @@ of 1~d or less. The 2~h--1~d runs all have \texttt{timeDependentMc=true}, yet
 they all produce severely underpredictive forecasts with N-test failures at
 $\delta_2=1.000$.
 
-The reason is that the \texttt{timeDependentMc} correction addresses
-\emph{which events enter the likelihood}, but it does not resolve the
-identifiability problem that arises when the total number of observed events
-is too small to constrain the MLE's cascade structure. Correcting for missing
-events and having enough events to identify branching are separate requirements.
-Real-time operational systems that apply \texttt{timeDependentMc} without also
-recognizing the branching identifiability barrier will issue well-corrected but
-still fundamentally underpredictive forecasts in the first day.
+The key point is that \texttt{timeDependentMc} controls \emph{which} events are
+used in the likelihood, but does not guarantee that enough information exists
+to identify branching. Completeness correction and identifiability are separate
+requirements; the first-day runs in this archive satisfy the former but not the
+latter.
 
 \subsection{Two identifiability barriers as a conceptual framework}
 
@@ -1499,34 +1488,25 @@ standalone evidence.
 \subsection{Double failure: why bias alone understates the operational problem}
 \label{sec:double_failure}
 
-The overconfidence analysis (Section~\ref{sec:prob_scores}) reveals that the
-operational consequence of early-window and intermediate-window failures is more
-severe than count bias alone would suggest. In every non-calibrated run, the
-90\% predictive interval completely excludes the observed count:
+The interval diagnostics in Section~\ref{sec:prob_scores} show that
+early-window and intermediate-window failures are not only directional-bias
+problems. In every non-calibrated run, the 90\% predictive interval excludes
+the observed weekly count:
 
 \begin{itemize}
-    \item \textbf{Regime~1 (2~h--1~d)}: the 90\% interval spans 50--84 events.
-    A decision-maker receiving this as an operational product would be told,
-    in effect, that there is a 90\% chance of 50--84 earthquakes in the coming
-    week. The truth (323 events) is roughly $4\times$ the upper bound. Not only
-    is the point forecast badly wrong; the stated confidence bound is wrong by
-    the same factor.
+    \item \textbf{Regime~1 (2~h--1~d)}: the 90\% interval spans 50--84 events,
+    while the observed count is 323. This indicates strong underprediction
+    combined with severe under-coverage.
 
-    \item \textbf{Regime~2 (2~d--3~d)}: the 90\% interval spans 411--742 events.
-    This is at least the right order of magnitude in width, but the lower bound
-    (411) exceeds the observed count (323) by 27\%. A decision-maker would be
-    told with 90\% confidence that at least 411 events are expected; the true
-    count is below that bound.
+    \item \textbf{Regime~2 (2~d--3~d)}: the 90\% interval spans 411--742 events,
+    so the observed count 323 lies below the lower bound. This indicates
+    overprediction combined with severe under-coverage.
 \end{itemize}
 
-The double failure has an important implication for post-hoc model quality
-assessment. If an agency issued an early forecast and later validated it against
-observations, the interval coverage failure would confirm that the model did not
-just produce a low estimate---it produced a \emph{confident} low estimate, which
-is a much more serious failure. Agencies should therefore not report only the
-median or expected count; they should also report the 90\% interval and its
-coverage rate from past analogous events, as this is the statistic that most
-clearly signals whether the model's expressed uncertainty is reliable.
+This pattern has direct implications for validation practice. Reporting only
+point summaries (mean or median) can hide whether predictive uncertainty is
+reliable. Operational reports should therefore include interval diagnostics and
+historical coverage performance alongside count medians.
 
 \subsection{Operational handover criterion from RJ and reliability diagnostics}
 
@@ -1543,6 +1523,16 @@ allocation (rolling KS / PIT behavior), uncertainty reliability (coverage), and
 benchmark dominance (ETAS score better than RJ). In this archive, the gate opens
 only for the 7~d run.
 
+\subsection{Implications for prospective deployment}
+
+The present archive is retrospective and sequence-specific, but the decision
+logic can be implemented prospectively with no methodological change. A practical
+workflow is: issue early RJ and ETAS in parallel, evaluate ETAS against fixed
+reliability gates (count consistency, temporal calibration, interval coverage),
+and promote ETAS to primary only once the gate is satisfied for the active
+sequence class. This preserves rapid initial issuance while reducing the chance
+that an under-resolved ETAS fit is treated as a fully calibrated forecast.
+
 \subsection{Magnitude-threshold robustness and where statistical power collapses}
 
 Threshold sensitivity confirms that the regime structure is robust at
@@ -1554,7 +1544,7 @@ power limitation, not evidence that high-magnitude tail behavior is fully
 resolved. Consequently, issue-time conclusions in this manuscript should be
 interpreted as strongest for the moderate-magnitude operational count range.
 
-\subsection{Expected-count consistency and the danger of reporting unresolved $E[N]$}
+\subsection{Expected-count consistency and reporting unresolved $E[N]$}
 
 The divergence between $E[N]$ and simulation medians in the early-window runs
 is a practically important finding. For the 12~h and 1~d parameter sets, the
@@ -1573,7 +1563,7 @@ forecast by large factors. Operational protocols should require empirical
 ensemble summaries (median and central intervals) whenever analytical
 consistency checks fail.
 
-\subsection{Bayesian priors on $p$ as the highest-leverage improvement for Regime~2}
+\subsection{Bayesian priors on $p$ for Regime~2}
 
 The Regime~2 overprediction (2~d--3~d) arises specifically from $p$
 underestimation. Once the branching barrier is crossed, the cascade structure
@@ -1623,7 +1613,7 @@ improvements identified here.
 
 \section{Limitations}
 
-Four limitations should be kept explicit when interpreting these results.
+Five limitations should be kept explicit when interpreting these results.
 \begin{enumerate}
     \item \textbf{Single-sequence scope}: this manuscript analyzes one
     operationally important sequence (Kaik\={o}ura). Regime structure and
@@ -1644,6 +1634,12 @@ Four limitations should be kept explicit when interpreting these results.
     simulation distributions. Operational recommendations in this manuscript
     therefore emphasize empirical ensemble summaries (median and intervals) for
     early windows.
+
+    \item \textbf{Model-structure and parameterization constraints}: the tested
+    implementation uses an isotropic spatial triggering kernel, fixed
+    magnitude-distribution slope ($b=1$), and finite-grid optimization for
+    $(a_{ms},a,p,c)$. Different kernel forms, priors, or optimization schemes
+    could shift breakpoint locations or reduce support failures.
 \end{enumerate}
 
 \section{Conclusions}
@@ -1653,101 +1649,48 @@ sequence produces the following principal conclusions.
 
 \begin{enumerate}
     \item The fixed-horizon design (all runs verifying days 7--14,
-    $N_{\mathrm{obs}}=323$) reveals \textbf{three distinct failure regimes} that
-    are only separable when the verification window is held constant. Earlier
-    variable-horizon analyses could not isolate these regimes.
+    $N_{\mathrm{obs}}=323$) resolves three issue-time regimes that are obscured
+    in variable-horizon comparisons.
 
-    \item \textbf{Regime~1} (generic and 2~h--1~d): the MLE converges to a
-    low-cascade local minimum (indirect triggering 2--9\%, 7~d reference value
-    $\approx33\%$), producing severely underpredictive simulations
-    (medians 45--86 versus $N_{\mathrm{obs}}=323$; ratios 0.14--0.27). The
-    \texttt{timeDependentMc} correction is insufficient to recover forecast
-    skill: the branching structure cannot be identified from hours of data,
-    regardless of completeness correction.
+    \item \textbf{Regime~1} (generic and 2~h--1~d) remains strongly
+    underpredictive (medians 45--86; ratios 0.14--0.27) and converges to a
+    low-cascade solution (indirect triggering 2--9\%). This indicates that
+    \texttt{timeDependentMc} alone does not overcome early branching
+    identifiability limits.
 
-    \item \textbf{Regime~2} (2~d--3~d): once enough data accumulate to cross
-    the branching barrier (between 1~d and 2~d), the MLE correctly identifies
-    the cascade structure but still underestimates the Omori exponent ($p=0.90$
-    instead of 1.10). The resulting forecasts overpredict days 7--14
-    (medians 492--499; ratios 1.52--1.55) and fail N-tests by overprediction.
+    \item \textbf{Regime~2} (2~d--3~d) recovers branching but not Omori decay:
+    fitted $p=0.90$ versus 1.10 in the 7~d reference fit, yielding systematic
+    overprediction (medians 492--499; ratios 1.52--1.55).
 
-    \item \textbf{Regime~3} (7~d only): both the branching structure and the
-    Omori decay rate are correctly identified. The forecast is count-calibrated
-    (median 334, ratio 1.03; N-test $(\delta_1,\delta_2)=(0.594,0.411)$) and
-    temporally calibrated in aggregate (rolling KS $p=0.98$), but daily-bin
-    diagnostics show mixed-sign residuals and compensation.
+    \item \textbf{Regime~3} (7~d) is the only calibrated run in this archive
+    (median 334; ratio 1.03; N-test $(\delta_1,\delta_2)=(0.594,0.411)$;
+    rolling KS $p=0.98$), with daily diagnostics indicating mixed-sign residual
+    compensation within the week.
 
-    \item Bootstrap intervals support regime separation in distribution space.
-    Count-ratio 95\% intervals are 0.139 [0.133, 0.139] at 12~h, 1.545
-    [1.514, 1.571] at 2~d, and 1.034 [1.019, 1.046] at 7~d. Weekly CRPS 95\%
-    intervals are 256.45 [254.92, 258.00] at 2~h, 144.66 [140.97, 148.49] at
-    3~d, and 14.48 [13.24, 15.89] at 7~d.
+    \item Segmented and bootstrap analyses support a primary transition near
+    1--2~d (count-ratio one-break permutation $p=0.036$), with weaker evidence
+    for a second late-window breakpoint in this single-sequence,
+    eight-issue-time dataset.
 
-    \item Proper-score diagnostics confirm the regime ordering in full
-    distribution space: the 7~d run minimizes weekly and daily CRPS
-    (14.48 and 5.74, respectively) and interval scores (204 and 52.8),
-    whereas 2~d--3~d remain intermediate and 2~h--1~d are worst.
-    Jensen--Shannon divergence to the 7~d reference is near-maximal
-    ($\sim1.0$) for 2~h--1~d and moderate ($\sim0.73$ weekly,
-    $\sim0.47$ daily) for 2~d--3~d, quantitatively separating the two
-    non-calibrated regimes.
+    \item Probabilistic diagnostics show a consistent reliability ordering:
+    7~d minimizes weekly CRPS (14.48) and is the only run with 90\% interval
+    coverage of the observed weekly count (100\%); all non-7~d runs have 0\%
+    coverage.
 
-    \item A fixed-parameter RJ baseline benchmark ($p=1.0$, $c=0.1$~d) is
-    less miscalibrated than ETAS for all non-7d issue times in weekly CRPS,
-    while ETAS becomes superior only at 7~d (ETAS CRPS 14.48 vs RJ 19.99).
-    This supports a model-handover interpretation: ETAS gains are realized only
-    after late-window calibration.
+    \item Against a fixed-parameter RJ baseline ($p=1.0$, $c=0.1$~d), ETAS is
+    superior only at 7~d (weekly CRPS 14.48 vs 19.99). For earlier issue times,
+    RJ is less miscalibrated, supporting an evidence-based model handover rule.
 
-    \item Analytical expected counts $E[N]$ diverge strongly from empirical
-    simulation summaries in early windows (up to factors of $\sim$19 versus
-    pyCSEP empirical means), indicating an unresolved expected-count consistency
-    problem. Until resolved, operational communication should use empirical
-    ensemble summaries rather than analytical $E[N]$ for 2~h--1~d issue times.
+    \item Magnitude behavior is stable across issue times (resampled M-test and
+    MLL pass throughout), and the same regime structure persists at $M\geq4$.
+    At $M\geq5$ and above, low observed counts limit inferential power.
 
-    \item Magnitude--frequency consistency (resampled M-test and MLL) is
-    maintained \textbf{across all eight issue times}, with no significant
-    deviation from the Gutenberg--Richter distribution in any run. The $b=1.0$
-    assumption is robust for this sequence; operational improvement effort
-    should focus on count calibration rather than magnitude recalibration.
-
-    \item Magnitude-threshold sensitivity of the archived runs shows the same
-    regime structure at $M\geq4$ as at $M\geq3$
-    (early underprediction, intermediate overprediction, late calibration).
-    At $M\geq5$ and above, low observed counts reduce statistical power, so
-    threshold-tail conclusions should be treated cautiously.
-
-    \item Spatial support limitations persist across all runs (16--25 observed
-    events in zero-rate cells; 2374--3002 of 6343 testing cells empty), and
-    are not resolved by longer fitting windows. This indicates a structural
-    kernel-support limitation that is \textbf{orthogonal to} and independent of
-    the temporal calibration improvements.
-
-    \item We identify \textbf{two distinct identifiability barriers}: a
-    \emph{branching barrier} (crossed near 2~d post-mainshock) and an
-    \emph{Omori barrier} (crossed near 7~d). Segmented tests provide statistical
-    support for the primary 1~d--2~d transition (count-ratio one-break
-    permutation $p=0.036$), while evidence for an additional late breakpoint is
-    weaker in this 8-point series and is inferred mainly from calibration and
-    score diagnostics. These barriers require different interventions: the
-    branching barrier may be addressable with informative $a$-value priors or
-    sequence-similarity methods; the Omori barrier is most efficiently addressed
-    with Bayesian hierarchical priors on $p$.
-
-    \item A \textbf{double-failure} pattern---systematic bias \emph{and}
-    overconfidence simultaneously---characterizes all non-calibrated runs.
-    The 90\% predictive interval covers the observed count ($N_{\mathrm{obs}}=323$)
-    only for the 7~d run (coverage 100\%); all seven other runs have 0\% coverage.
-    Regime~1 forecasts express false certainty with narrow intervals of 50--116
-    events (the truth is above); Regime~2 forecasts express false certainty with
-    intervals of 228--331 events centered above the truth. Only when both
-    identifiability barriers are crossed does the model simultaneously achieve
-    correct direction, correct scale, and appropriate uncertainty spread.
-    Interval coverage validation should be a mandatory pre-issuance check for any
-    operational ETAS product.
-
-    \item A quantitative operational decision table combining N-test class,
-    rolling calibration, interval coverage, and RJ benchmark comparison yields
-    NO-GO for generic through 3~d and GO only for 7~d in this sequence.
+    \item Spatial-support limitations remain in all runs (16--25 observed events
+    in zero-rate cells). Together with the early expected-count mismatch
+    (summary-file $E[N]$ versus empirical ensembles), this supports two practical
+    recommendations: use empirical ensemble summaries for early windows, and
+    prioritize model development on (i) branching/Omori identifiability and
+    (ii) spatial-kernel support.
 \end{enumerate}
 
 \section*{Data and Resources}
